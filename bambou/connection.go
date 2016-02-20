@@ -45,7 +45,6 @@ import (
 // client. You should never have to use it manually.
 type Connection struct {
 	HasTimeouted       bool
-	Request            *Request
 	Timeout            time.Duration
 	TransactionID      string
 	UsesAuthentication bool
