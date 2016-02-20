@@ -59,7 +59,7 @@ func (i RESTIdentity) String() string {
 	return fmt.Sprintf("<%s|%s>", i.RESTName, i.ResourceName)
 }
 
-// Apply identity to a list of Exposable
+// Apply the given Identity to a list of Exposables.
 //
 // This function applies the given BBRESTIdentity to the given
 // list. The type of the list parameters must be a slice of
