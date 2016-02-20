@@ -258,7 +258,7 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 // In case of error, an Error is returned, otherwise nil.
 func AssignChildren(parent Exposable, children interface{}, identity RESTIdentity) *Error {
 
-	ids := make([]string, 0)
+	var ids []string
 
 	if children != nil {
 		l := reflect.ValueOf(children).Len()

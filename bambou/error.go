@@ -44,7 +44,7 @@ type ErrorDescription struct {
 
 // Represent an connection Error.
 type Error struct {
-	Code         int64                 `json:"-"`
+	Code         int                   `json:"-"`
 	Property     string                `json:"property"`
 	Message      string                `json:"type"`
 	Descriptions ErrorDescriptionsList `json:"descriptions"`
