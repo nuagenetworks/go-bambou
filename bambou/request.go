@@ -1,0 +1,102 @@
+// Copyright (c) 2015, Alcatel-Lucent Inc.
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// * Neither the name of bambou nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+package bambou
+
+import (
+	"bytes"
+	"net/http"
+)
+
+const (
+	RequestMethodDelete = "DELETE"
+	RequestMethodGet    = "GET"
+	RequestMethodHead   = "HEAD"
+	RequestMethodPost   = "POST"
+	RequestMethodPut    = "PUT"
+)
+
+// Represents a Request.
+type Request struct {
+	Data       []byte
+	Headers    map[string]string
+	Identifier string
+	Parameters map[string]string
+	URL        string
+	Method     string
+}
+
+// Returns a new  *Request.
+func NewRequest(url string) *Request {
+
+	return &Request{
+		URL:        url,
+		Headers:    make(map[string]string),
+		Parameters: make(map[string]string),
+		Method:     RequestMethodGet,
+	}
+}
+
+// Sets the value of Header field.
+func (r *Request) SetHeader(name, value string) {
+
+	r.Headers[name] = value
+}
+
+// Returns the value of Header field.
+func (r *Request) GetHeader(name string) string {
+
+	return r.Headers[name]
+}
+
+// Sets the value of a query parameter.
+func (r *Request) SetParameter(name, value string) {
+
+	r.Parameters[name] = value
+}
+
+// Returns a native http.Request.
+func (r *Request) ToNative() *http.Request {
+
+	req, err := http.NewRequest(r.Method, r.URL, bytes.NewBuffer(r.Data))
+
+	if err != nil {
+		panic("Error while creating native http request: " + err.Error())
+	}
+
+	for k, v := range r.Headers {
+		req.Header.Set(k, v)
+	}
+
+	for k, v := range r.Parameters {
+		req.Form.Set(k, v)
+	}
+
+	return req
+}
