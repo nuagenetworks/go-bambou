@@ -2,7 +2,7 @@
 
 Bends but does not break, in Go
 
-[![GoDoc](https://godoc.org/github.com/nuagenetworks/go-bambou?status.svg)](https://godoc.org/github.com/nuagenetworks/go-bambou)
+[![GoDoc](https://godoc.org/github.com/nuagenetworks/go-bambou/bambou?status.svg)](https://godoc.org/github.com/nuagenetworks/go-bambou/bambou)
 
 ## description
 
