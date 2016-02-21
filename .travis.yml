@@ -4,4 +4,4 @@ go:
  - 1.5
  - tip
 install: go get -v github.com/smartystreets/goconvey/convey && go get -v ./bambou
-script: go test -v ./bambou
+script: go test -v -cover ./bambou
