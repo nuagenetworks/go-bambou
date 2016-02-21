@@ -52,30 +52,7 @@ type Connection struct {
 	UserInfo           interface{}
 }
 
-// Returns a pointer to a new *Connection.
-func NewConnection() *Connection {
-
-	return &Connection{
-		Timeout:       time.Duration(60) * time.Millisecond,
-		TransactionID: uuid.New(),
-	}
-}
-
-// Starts the connection with the given Request.
-//
-// If the request is a success, then a response will be returned and the error will be nil.
-// In case of error, the error will be returned, and the response will be nil.
-
-func (c *Connection) Start(request *Request) (*Response, *Error) {
-	session := CurrentSession()
-	request.SetHeader("X-Nuage-Organization", session.Organization)
-	request.SetHeader("Authorization", session.MakeAuthorizationHeaders())
-	request.SetHeader("Content-Type", "application/json")
-
-	logger := Logger()
-	logger.Infof("Req : %s %s %s (id: %s)", request.Method, request.URL, request.Parameters, c.TransactionID)
-	logger.Debugf("Req : Headers: %s", request.Headers)
-	logger.Debugf("Req : Data: %s", request.Data)
+func sendNativeRequest(request *Request) *Response {
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -102,6 +79,44 @@ func (c *Connection) Start(request *Request) (*Response, *Error) {
 		response.SetHeader(h, strings.Join(v, ", "))
 	}
 
+	data, err := ioutil.ReadAll(nativeResponse.Body)
+
+	if err != nil {
+		panic("Error while decoding the body data: " + err.Error())
+	}
+
+	response.Data = data
+
+	return response
+}
+
+// Returns a pointer to a new *Connection.
+func NewConnection() *Connection {
+
+	return &Connection{
+		Timeout:       time.Duration(60) * time.Millisecond,
+		TransactionID: uuid.New(),
+	}
+}
+
+// Starts the connection with the given Request.
+//
+// If the request is a success, then a response will be returned and the error will be nil.
+// In case of error, the error will be returned, and the response will be nil.
+
+func (c *Connection) Start(request *Request) (*Response, *Error) {
+	session := CurrentSession()
+	request.SetHeader("X-Nuage-Organization", session.Organization)
+	request.SetHeader("Authorization", session.MakeAuthorizationHeaders())
+	request.SetHeader("Content-Type", "application/json")
+
+	logger := Logger()
+	logger.Infof("Req : %s %s %s (id: %s)", request.Method, request.URL, request.Parameters, c.TransactionID)
+	logger.Debugf("Req : Headers: %s", request.Headers)
+	logger.Debugf("Req : Data: %s", request.Data)
+
+	response := sendNativeRequest(request)
+
 	defer func() {
 		logger.Debugf("Resp: %d (id: %s)", response.Code, c.TransactionID)
 		logger.Debugf("Resp: Headers: %s", response.Headers)
@@ -114,28 +129,14 @@ func (c *Connection) Start(request *Request) (*Response, *Error) {
 		return c.Start(request)
 
 	case ResponseCodeSuccess, ResponseCodeCreated:
-		data, err := ioutil.ReadAll(nativeResponse.Body)
-
-		if err != nil {
-			panic("Error while decoding the body data: " + err.Error())
-		}
-
-		response.Data = data
-
 		return response, nil
 
 	case ResponseCodeEmpty:
 		return response, nil
 
 	case ResponseCodeConflict:
-		data, err := ioutil.ReadAll(nativeResponse.Body)
-
-		if err != nil {
-			panic("Error while decoding the body data: " + err.Error())
-		}
-
-		error := NewError(response.Code, string(data))
-		json.Unmarshal(data, &error)
+		error := NewError(response.Code, string(response.Data))
+		json.Unmarshal(response.Data, &error)
 
 		return nil, error
 
