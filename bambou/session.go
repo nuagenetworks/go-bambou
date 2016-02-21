@@ -100,7 +100,7 @@ func (s *Session) Start() *Error {
 
 	currentSession = s
 
-	err := FetchEntity(s.Root)
+	err := s.Root.Fetch()
 
 	if err != nil {
 		Logger().Errorf("Error during Authentication: %s", err.Error())
