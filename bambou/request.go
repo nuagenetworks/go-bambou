@@ -81,6 +81,12 @@ func (r *Request) SetParameter(name, value string) {
 	r.Parameters[name] = value
 }
 
+// Gets the value of a query parameter.
+func (r *Request) GetParameter(name string) string {
+
+	return r.Parameters[name]
+}
+
 // Returns a native http.Request.
 func (r *Request) ToNative() *http.Request {
 
@@ -92,10 +98,6 @@ func (r *Request) ToNative() *http.Request {
 
 	for k, v := range r.Headers {
 		req.Header.Set(k, v)
-	}
-
-	for k, v := range r.Parameters {
-		req.Form.Set(k, v)
 	}
 
 	return req

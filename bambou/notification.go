@@ -41,12 +41,6 @@ type Event struct {
 	UpdateMechanism string                   `json:"updateMechanism"`
 }
 
-// Returns a new *Event.
-func NewEvent() *Event {
-
-	return &Event{}
-}
-
 // Represents a Push Notification.
 //
 // A Push Notification is a collection of Events, plus a
@@ -59,5 +53,7 @@ type Notification struct {
 // Returns a new *Event.
 func NewNotification() *Notification {
 
-	return &Notification{}
+	return &Notification{
+		Events: EventsList{},
+	}
 }

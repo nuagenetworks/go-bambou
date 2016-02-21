@@ -4,4 +4,4 @@ go:
  - 1.5
  - tip
 install: go get -v ./bambou
-script: go build -v ./bambou
+script: go test -cover ./bambou
