@@ -1,65 +1,81 @@
 package bambou
 
-import "testing"
+import (
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
 
 func TestRequest_NewRequest(t *testing.T) {
 
-	r := NewRequest("https://fake.com")
+	Convey("Given I create a new Request", t, func() {
+		r := NewRequest("https://fake.com")
 
-	if r.URL != "https://fake.com" {
-		t.Errorf("Data should be 'https://fake.com' but is '%s'", r.URL)
-	}
+		Convey("Then URL should https://fake.com", func() {
+			So(r.URL, ShouldEqual, "https://fake.com")
+		})
 
-	if r.Method != RequestMethodGet {
-		t.Errorf("Method should be '%s' but is '%s'", RequestMethodGet, r.Method)
-	}
+		Convey("Then Method should GET", func() {
+			So(r.Method, ShouldEqual, RequestMethodGet)
+		})
 
-	if r.Headers == nil {
-		t.Errorf("Headers should not be nil")
-	}
+		Convey("Then Headers should not be nil", func() {
+			So(r.Headers, ShouldNotBeNil)
+		})
 
-	if r.Parameters == nil {
-		t.Errorf("Parameters should not be nil")
-	}
+		Convey("Then Parameters should not be nil", func() {
+			So(r.Parameters, ShouldNotBeNil)
+		})
+	})
 }
 
 func TestRequest_SetGetHeader(t *testing.T) {
 
-	r := NewRequest("https://fake.com")
-	r.SetHeader("header", "value")
+	Convey("Given I create a new Request", t, func() {
+		r := NewRequest("https://fake.com")
 
-	v := r.GetHeader("header")
-	if v != "value" {
-		t.Errorf("GetHeader(\"value\") should be 'value' but is '%s'", v)
-	}
+		Convey("When I set the header 'header' to 'value'", func() {
+			r.SetHeader("header", "value")
+
+			Convey("Then value of header should be value", func() {
+				So(r.GetHeader("header"), ShouldEqual, "value")
+			})
+		})
+	})
 }
 
 func TestRequest_SetGetParameter(t *testing.T) {
 
-	r := NewRequest("https://fake.com")
-	r.SetParameter("param", "value")
+	Convey("Given I create a new request", t, func() {
+		r := NewRequest("https://fake.com")
 
-	v := r.GetParameter("param")
-	if v != "value" {
-		t.Errorf("GetParameter(\"value\") should be 'value' but is '%s'", v)
-	}
+		Convey("When I set the parameter 'param' to 'value'", func() {
+			r.SetParameter("param", "value")
+
+			Convey("Then the value of parameter 'param' should 'value", func() {
+				So(r.GetParameter("param"), ShouldEqual, "value")
+			})
+		})
+	})
 }
 
 func TestReques_ToNative(t *testing.T) {
 
-	r := NewRequest("https://fake.com")
-	r.SetHeader("header", "value")
-	r.SetParameter("param", "value")
-	r.Data = []byte("hello")
+	Convey("Given I create new request with default values", t, func() {
+		r := NewRequest("https://fake.com")
+		r.SetHeader("header", "value")
+		r.Data = []byte("hello")
 
-	n := r.ToNative()
+		Convey("When I convert the request to the native request", func() {
+			n := r.ToNative()
 
-	if u := n.URL.String(); r.URL != u {
-		t.Errorf("native request URL should be \"https://fake.com\" but is '%s'", u)
-	}
+			Convey("Then URL should https://fake.com", func() {
+				So(n.URL.String(), ShouldEqual, "https://fake.com")
+			})
 
-	if h := r.Headers["header"]; n.Header.Get("header") != h {
-		t.Errorf("native request Header for 'header' should be \"value\" but is '%s'", h)
-	}
-
+			Convey("Then Header 'header' should be 'value'", func() {
+				So(n.Header.Get("header"), ShouldEqual, "value")
+			})
+		})
+	})
 }

@@ -1,23 +1,33 @@
 package bambou
 
-import "testing"
+import (
+	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
+)
 
 func TestResponse_NewResponse(t *testing.T) {
 
-	r := NewResponse()
+	Convey("Given I create a new Request", t, func() {
+		r := NewResponse()
 
-	if r.Headers == nil {
-		t.Errorf("Headers should not be nil")
-	}
+		Convey("Then Headers should should not be nil", func() {
+			So(r.Headers, ShouldNotBeNil)
+		})
+	})
 }
 
 func TestResponse_SetGetHeader(t *testing.T) {
 
-	r := NewResponse()
-	r.SetHeader("header", "value")
+	Convey("Given I create a new Request", t, func() {
+		r := NewResponse()
 
-	v := r.GetHeader("header")
-	if v != "value" {
-		t.Errorf("GetHeader(\"value\") should be 'value' but is '%s'", v)
-	}
+		Convey("When I set the header 'header' to 'value'", func() {
+			r.SetHeader("header", "value")
+
+			Convey("Then value of header should value", func() {
+				So(r.GetHeader("header"), ShouldEqual, "value")
+			})
+		})
+	})
 }

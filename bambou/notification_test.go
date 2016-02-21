@@ -3,53 +3,65 @@ package bambou
 import (
 	"encoding/json"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestNotification_NewNotification(t *testing.T) {
 
-	n := NewNotification()
+	Convey("Given I create a new Notification", t, func() {
+		n := NewNotification()
 
-	if n.Events == nil {
-		t.Error("Events should not be nil")
-	}
+		Convey("Then Events should not be nil", func() {
+			So(n.Events, ShouldNotBeNil)
+		})
 
-	if n.UUID != "" {
-		t.Error("UUID should be '' but it '%s'", n.UUID)
-	}
+		Convey("Then UUID should not be nil", func() {
+			So(n.UUID, ShouldNotBeNil)
+		})
+	})
 }
 
 func TestNotification_FromJSON(t *testing.T) {
 
-	n := NewNotification()
-	d := "{\"uuid\": \"007\", \"events\": [{\"entityType\": \"cat\", \"type\": \"UPDATE\", \"updateMechanism\": \"useless\", \"entities\":[{\"name\": \"hello\"}]}]}"
+	Convey("Given I create a new notification", t, func() {
+		n := NewNotification()
 
-	json.Unmarshal([]byte(d), &n)
+		Convey("When I unmarshal son json data", func() {
+			d := "{\"uuid\": \"007\", \"events\": [{\"entityType\": \"cat\", \"type\": \"UPDATE\", \"updateMechanism\": \"useless\", \"entities\":[{\"name\": \"hello\"}]}]}"
+			json.Unmarshal([]byte(d), &n)
 
-	if w := n.UUID; w != "007" {
-		t.Error("UUID should be '007' but it '%s'", w)
-	}
+			Convey("Then UUI should be '007'", func() {
+				So(n.UUID, ShouldEqual, "007")
+			})
 
-	if w := len(n.Events); w != 1 {
-		t.Error("Len of Events should be '1' but it '%d'", w)
-	}
+			Convey("Then lenght of Events should be 1", func() {
+				So(len(n.Events), ShouldEqual, 1)
+			})
 
-	if w := n.Events[0].EntityType; w != "cat" {
-		t.Error("EntityType should be 'cat' but it '%s'", w)
-	}
+			Convey("When I retrieve the Events", func() {
+				e := n.Events[0]
 
-	if w := n.Events[0].Type; w != "UPDATE" {
-		t.Error("Type should be 'UPDATE' but it '%s'", w)
-	}
+				Convey("Then EntityType should be cat", func() {
+					So(e.EntityType, ShouldEqual, "cat")
+				})
 
-	if w := n.Events[0].UpdateMechanism; w != "useless" {
-		t.Error("UpdateMechanism should be 'useless' but it '%s'", w)
-	}
+				Convey("Then Type should UPDATE", func() {
+					So(e.Type, ShouldEqual, "UPDATE")
+				})
 
-	if w := len(n.Events[0].DataMap); w != 1 {
-		t.Error("Len of DataMap should be '1' but it '%d'", w)
-	}
+				Convey("Then UpdateMechanism should useless", func() {
+					So(e.UpdateMechanism, ShouldEqual, "useless")
+				})
 
-	if w := n.Events[0].DataMap[0]["name"]; w != "hello" {
-		t.Error("name should be 'hello' but it '%s'", w)
-	}
+				Convey("Then the lenght of DataMap should be 1", func() {
+					So(len(e.DataMap), ShouldEqual, 1)
+				})
+
+				Convey("Then the value of item 0 of DataMap should hello", func() {
+					So(e.DataMap[0]["name"], ShouldEqual, "hello")
+				})
+			})
+		})
+	})
 }

@@ -1,95 +1,95 @@
 package bambou
 
-import "testing"
+import (
+	"testing"
 
-var r *TestRoot
-
-func setup() {
-	r = &TestRoot{
-		ExposedObject: ExposedObject{
-			Identity: TestRooIdentity,
-		},
-	}
-}
-
-func teardown() {
-	r = nil
-}
+	. "github.com/smartystreets/goconvey/convey"
+)
 
 func TestSession_NewSession(t *testing.T) {
-	setup()
-	defer teardown()
 
-	s := NewSession("username", "password", "organization", "url", r)
+	Convey("Given I create a new Session", t, func() {
 
-	if w := s.Username; "username" != w {
-		t.Error("UserName should be 'username' but is %s", w)
-	}
+		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
+		s := NewSession("username", "password", "organization", "http://url.com", r)
 
-	if w := s.Password; "password" != w {
-		t.Error("Password should be 'password' but is %s", w)
-	}
+		Convey("Then the properties Username should be 'username'", func() {
+			So(s.Username, ShouldEqual, "username")
+		})
 
-	if w := s.Organization; "organization" != w {
-		t.Error("Organization should be 'organization' but is %s", w)
-	}
+		Convey("Then the properties Password should be 'password'", func() {
+			So(s.Password, ShouldEqual, "password")
+		})
 
-	if w := s.URL; "url" != w {
-		t.Error("URL should be 'url' but is %s", w)
-	}
+		Convey("Then the properties Organization should be 'organization'", func() {
+			So(s.Organization, ShouldEqual, "organization")
+		})
 
-	if s.Root == nil {
-		t.Error("Root should be not be nil")
-	}
+		Convey("Then the properties URL should be 'http://url.com'", func() {
+			So(s.URL, ShouldEqual, "http://url.com")
+		})
+
+		Convey("Then the properties Root should not be nil", func() {
+			So(s.Root, ShouldNotBeNil)
+		})
+	})
 }
 
 func TestSession_MakeAuthorizationHeaders(t *testing.T) {
-	setup()
-	defer teardown()
 
-	s := NewSession("username", "password", "organization", "url", r)
+	Convey("Given I create a new Session", t, func() {
 
-	if w := s.MakeAuthorizationHeaders(); "XREST dXNlcm5hbWU6cGFzc3dvcmQ=" != w {
-		t.Error("Authorization Headers should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ=' but is %s", w)
-	}
+		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
+		s := NewSession("username", "password", "organization", "http://url.com", r)
+
+		Convey("When I prepare the Header", func() {
+			h := s.MakeAuthorizationHeaders()
+
+			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ", func() {
+				So(h, ShouldEqual, "XREST dXNlcm5hbWU6cGFzc3dvcmQ=")
+			})
+		})
+	})
 }
 
 func TestSession_StartStopSession(t *testing.T) {
-	setup()
-	defer teardown()
 
-	if CurrentSession() != nil {
-		t.Error("CurrentSession should be nil")
-	}
+	Convey("Given I create a new Session", t, func() {
 
-	s := NewSession("username", "password", "organization", "url", r)
-	s.Start()
+		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
+		s := NewSession("username", "password", "organization", "http://url.com", r)
 
-	if CurrentSession() != s {
-		t.Error("CurrentSession should be equal to r")
-	}
+		Convey("Then the CurrentSession() should be nil", func() {
+			So(CurrentSession(), ShouldBeNil)
+		})
 
-	if w := s.APIKey; "api-key" != w {
-		t.Error("session APIKey should be 'api-key' but is %s", w)
-	}
+		Convey("When I start the session and retrieve the CurrentSession", func() {
+			s.Start()
+			c := CurrentSession()
 
-	if w := r.APIKey; "api-key" != w {
-		t.Error("root object APIKey should be 'api-key' but is %s", r)
-	}
+			Convey("Then the CurrentSession should be equal to session", func() {
+				So(c, ShouldEqual, s)
+			})
 
-	s.Reset()
+			Convey("Then the session APIKey should be 'api-key'", func() {
+				So(c.APIKey, ShouldEqual, "api-key")
+			})
 
-	if CurrentSession() != nil {
-		t.Error("CurrentSession should be nil")
-	}
+			Convey("Then the Root User APIKey should be 'api-key'", func() {
+				So(c.Root.GetAPIKey(), ShouldEqual, "api-key")
+			})
 
-	if w := s.APIKey; "" != w {
-		t.Error("session APIKey should be '' but is %s", w)
-	}
+		})
 
-	if w := r.APIKey; "" != w {
-		t.Error("root object APIKey should be '' but is %s", w)
-	}
+		Convey("When I reset the session and retrieve the CurrentSession", func() {
+			s.Reset()
+			c := CurrentSession()
+
+			Convey("Then the CurrentSession should be nil", func() {
+				So(c, ShouldBeNil)
+			})
+		})
+	})
 
 }
 

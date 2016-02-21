@@ -4,13 +4,20 @@ import (
 	"testing"
 
 	"github.com/ccding/go-logging/logging"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestLogger_Logger(t *testing.T) {
 
-	l := Logger()
+	Convey("Given I retrieve the Logger", t, func() {
+		l := Logger()
 
-	if w := l.Level(); w != logging.ERROR {
-		t.Error("Log level should be '%d' but is '%d'", logging.ERROR, w)
-	}
+		Convey("Then the Level should be logging.ERROR", func() {
+			So(l.Level(), ShouldEqual, logging.ERROR)
+		})
+
+		Convey("Then the Name should be 'bambou", func() {
+			So(l.Name(), ShouldEqual, "bambou")
+		})
+	})
 }

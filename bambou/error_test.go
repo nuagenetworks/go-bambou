@@ -3,55 +3,70 @@ package bambou
 import (
 	"encoding/json"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestError_NewError(t *testing.T) {
 
-	e := NewError(42, "a big error")
+	Convey("Given I create a new Error", t, func() {
+		e := NewError(42, "a big error")
 
-	if e.Code != 42 {
-		t.Error("Code should be 42 but it %d", e.Code)
-	}
+		Convey("Then Code should be 42", func() {
+			So(e.Code, ShouldEqual, 42)
+		})
 
-	if e.Message != "a big error" {
-		t.Error("Code should be 'a big error' but it '%s'", e.Message)
-	}
+		Convey("Then Message should be 'a big error'", func() {
+			So(e.Message, ShouldEqual, "a big error")
+		})
+
+	})
 }
 
 func TestError_Error(t *testing.T) {
 
-	e := NewError(42, "a big error")
+	Convey("Given I create a new Error", t, func() {
+		e := NewError(42, "a big error")
 
-	if w := e.Error(); w != "<Error: 42, message: a big error>" {
-		t.Error("String() should be '<Error: 42, message: a big error>' but it '%s'", w)
-	}
+		Convey("Then Error() output should be should be '<Error: 42, message: a big error>'", func() {
+			So(e.Error(), ShouldEqual, "<Error: 42, message: a big error>")
+		})
+	})
 }
 
 func TestError_FromJSON(t *testing.T) {
 
-	e := NewError(42, "a big error")
-	d := "{\"property\": \"prop\", \"type\": \"iznogood\", \"descriptions\": [{\"title\": \"oula\", \"description\": \"pas bon\"}]}"
+	Convey("Given I create a new Error", t, func() {
+		e := NewError(42, "a big error")
 
-	json.Unmarshal([]byte(d), e)
+		Convey("When I unmarshal some data", func() {
+			d := "{\"property\": \"prop\", \"type\": \"iznogood\", \"descriptions\": [{\"title\": \"oula\", \"description\": \"pas bon\"}]}"
+			json.Unmarshal([]byte(d), e)
 
-	if w := e.Message; w != "iznogood" {
-		t.Error("Message should be 'iznogood' but it '%s'", w)
-	}
+			Convey("Then the Message should be 'iznogood'", func() {
+				So(e.Message, ShouldEqual, "iznogood")
+			})
 
-	if w := e.Property; w != "prop" {
-		t.Error("Property should be 'prop' but it '%s'", w)
-	}
+			Convey("Then the Property should be 'prop'", func() {
+				So(e.Property, ShouldEqual, "prop")
+			})
 
-	if w := len(e.Descriptions); w != 1 {
-		t.Error("Descriptions should be '1' but it '%d'", w)
-	}
+			Convey("Then the lenght of Descriptions should be 1", func() {
+				So(len(e.Descriptions), ShouldEqual, 1)
+			})
 
-	if w := e.Descriptions[0].Title; w != "oula" {
-		t.Error("Descriptions should be 'oula' but it '%s'", w)
-	}
+			Convey("When I retrieve the content of Descriptions", func() {
+				d := e.Descriptions[0]
 
-	if w := e.Descriptions[0].Description; w != "pas bon" {
-		t.Error("Descriptions should be 'pas bon' but it '%s'", w)
-	}
+				Convey("Then the Title should be 'oula'", func() {
+					So(d.Title, ShouldEqual, "oula")
+				})
 
+				Convey("Then the Description should be ' bon'", func() {
+					So(d.Description, ShouldEqual, "pas bon")
+				})
+
+			})
+		})
+	})
 }
