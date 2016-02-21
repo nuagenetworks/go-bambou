@@ -34,7 +34,8 @@ type EventsList []*Event
 
 // Represents a Push Event.
 type Event struct {
-	Entities        []map[string]interface{} `json:"entities"`
+	DataMap         []map[string]interface{} `json:"entities"`
+	Data            []byte                   `json:"-"`
 	EntityType      string                   `json:"entityType"`
 	Type            string                   `json:"type"`
 	UpdateMechanism string                   `json:"updateMechanism"`

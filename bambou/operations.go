@@ -193,7 +193,7 @@ func DeleteEntity(object Exposable) *Error {
 // The given FetchingInfo will be used to apply pagination, or filtering etc, and will
 // be populated back according to the response (with the total cound of objects for instance).
 // In case of error, an *Error is returned, otherwise nil.
-func FetchChildren(parent Exposable, identity RESTIdentity, dest interface{}, info *FetchingInfo) *Error {
+func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
 	request := NewRequest(parent.GetURLForChildrenIdentity(identity))
 	prepareHeaders(request, info)
@@ -256,7 +256,7 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 // You must provide the Identity of the children you want to assign. This is mandatory in
 // case you want to unassign all objects.
 // In case of error, an Error is returned, otherwise nil.
-func AssignChildren(parent Exposable, children interface{}, identity RESTIdentity) *Error {
+func AssignChildren(parent Exposable, children interface{}, identity Identity) *Error {
 
 	var ids []string
 

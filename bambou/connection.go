@@ -32,11 +32,12 @@ package bambou
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/pborman/uuid"
 	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
 )
 
 // Represents a Connection.

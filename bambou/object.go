@@ -44,7 +44,7 @@ type Exposable interface {
 	Operationable
 
 	GetURL() string
-	GetURLForChildrenIdentity(RESTIdentity) string
+	GetURLForChildrenIdentity(Identity) string
 }
 
 // Represents a list of Rootables
@@ -67,22 +67,22 @@ type Rootable interface {
 // This struct must be embedded into all objects that are available
 // throught the ReST api.
 type ExposedObject struct {
-	ID           string       `json:"ID,omitempty"`
-	ParentID     string       `json:"parentID,omitempty"`
-	ParentType   string       `json:"parentType,omitempty"`
-	Owner        string       `json:"owner,omitempty"`
-	ParentObject string       `json:"-"`
-	Identity     RESTIdentity `json:"-"`
+	ID           string   `json:"ID,omitempty"`
+	ParentID     string   `json:"parentID,omitempty"`
+	ParentType   string   `json:"parentType,omitempty"`
+	Owner        string   `json:"owner,omitempty"`
+	ParentObject string   `json:"-"`
+	Identity     Identity `json:"-"`
 }
 
 // Returns the Identity
-func (o *ExposedObject) GetIdentity() RESTIdentity {
+func (o *ExposedObject) GetIdentity() Identity {
 
 	return o.Identity
 }
 
 // Sets the Identity
-func (o *ExposedObject) SetIdentity(identity RESTIdentity) {
+func (o *ExposedObject) SetIdentity(identity Identity) {
 
 	o.Identity = identity
 }
@@ -104,7 +104,7 @@ func (o *ExposedObject) GetURL() string {
 //
 // The URL will be constructed based on the current object URL and the identity of
 // the children.
-func (o *ExposedObject) GetURLForChildrenIdentity(identity RESTIdentity) string {
+func (o *ExposedObject) GetURLForChildrenIdentity(identity Identity) string {
 
 	return o.GetURL() + "/" + identity.ResourceName
 }

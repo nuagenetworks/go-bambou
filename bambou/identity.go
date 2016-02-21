@@ -34,37 +34,52 @@ import (
 	"reflect"
 )
 
+// Identity representing all possible identities.
+var AllIdentity = Identity{
+	RESTName:     "__all__",
+	ResourceName: "__all__",
+}
+
 // List of Identifiables.
 type IdentifiablesList []Identifiable
 
 // Interface of an Identifiable.
 type Identifiable interface {
-	GetIdentity() RESTIdentity
-	SetIdentity(RESTIdentity)
+	GetIdentity() Identity
+	SetIdentity(Identity)
 }
 
-// RESTIdentity is a structure that contains the basic
+// Identity is a structure that contains the basic
 // information of all Identifiable. The RESTName is
 // usually the singular form of the resourceName Field.
 //
 // For instance, "enterprise" and "enterprises".
-type RESTIdentity struct {
+type Identity struct {
 	RESTName     string
 	ResourceName string
 }
 
+// Returns a new *Identity
+func NewIdentity(RESTName, resourceName string) *Identity {
+
+	return &Identity{
+		RESTName:     RESTName,
+		ResourceName: resourceName,
+	}
+}
+
 // String representation of the object.
-func (i RESTIdentity) String() string {
+func (i Identity) String() string {
 
 	return fmt.Sprintf("<%s|%s>", i.RESTName, i.ResourceName)
 }
 
 // Apply the given Identity to a list of Exposables.
 //
-// This function applies the given BBRESTIdentity to the given
+// This function applies the given BBIdentity to the given
 // list. The type of the list parameters must be a slice of
 // pointer to struct that implement the Exposable interface.
-func Identify(list interface{}, identity RESTIdentity) {
+func Identify(list interface{}, identity Identity) {
 
 	l := reflect.ValueOf(list).Elem().Len()
 

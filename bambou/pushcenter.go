@@ -35,56 +35,92 @@ import (
 )
 
 // Signature of a Push Center Handler.
-type PushCenterHander func(*Notification)
+type EventHandler func(*Event)
+
+// Represents a list of Push Center Handlers
+type EventHandlers map[string]EventHandler
 
 // Represents a Push Center
 type PushCenter struct {
 	IsRunning bool
 	Channel   chan *Notification
 	URL       string
+
+	handlers      EventHandlers
+	defaultHander EventHandler
 }
 
 // Creates a new Push Center
 func NewPushCenter() *PushCenter {
 
-	return &PushCenter{}
+	return &PushCenter{
+		handlers: EventHandlers{},
+	}
 }
 
-// Starts the Push Center with the given PushCenterHander.
+// Registers the given EventHandler for the given Entity Identity.
 //
-// When a Push Notification is received from the server, the PushCenter
-// will call the handler and pass it the *Notification.
-func (p *PushCenter) StartWithHandler(hander PushCenterHander) {
+// You can pass the bambou.AllIdentity as identity to register the handler
+// for all events. If you pass a handler for an Identity that is already registered
+// the previous handler will be silently overwriten.
+func (p *PushCenter) RegisterHandlerForIdentity(handler EventHandler, identity Identity) {
 
-	go func() {
+	if identity.RESTName == AllIdentity.RESTName {
+		p.defaultHander = handler
+		return
+	}
 
-		p.Start()
+	p.handlers[identity.RESTName] = handler
+}
 
-	loop:
-		for {
-			select {
-			case notification, ok := <-p.Channel:
-				if !ok {
-					break loop
-				} else {
-					hander(notification)
-				}
-			}
-		}
-	}()
+// Registers the given EventHandler for the given Entity Identity.
+func (p *PushCenter) UnregisterHandlerForIdentity(identity Identity) {
+
+	if identity.RESTName == AllIdentity.RESTName {
+		p.defaultHander = nil
+		return
+	}
+
+	if _, exists := p.handlers[identity.RESTName]; exists {
+		delete(p.handlers, identity.RESTName)
+	}
+}
+
+func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
+
+	_, exists := p.handlers[identity.RESTName]
+	return exists
 }
 
 // Starts the Push Center.
-//
-// The Push Center will be started, but you will need to use the
-// internal PushCenter.Channel to deal with the event yourself.
 func (p *PushCenter) Start() {
 
 	p.IsRunning = true
 	p.URL = CurrentSession().URL + "/events"
 	p.Channel = make(chan *Notification)
 
-	go func() { p.listen() }()
+	go func() {
+		go p.listen()
+		for {
+			select {
+			case notification, ok := <-p.Channel:
+				if !ok {
+					return
+				}
+				for _, event := range notification.Events {
+
+					event.Data, _ = json.Marshal(event.DataMap[0])
+
+					if p.defaultHander != nil {
+						p.defaultHander(event)
+					}
+					if handler, exists := p.handlers[event.EntityType]; exists {
+						handler(event)
+					}
+				}
+			}
+		}
+	}()
 }
 
 // Stops a running PushCenter.
