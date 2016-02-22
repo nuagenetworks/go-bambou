@@ -36,8 +36,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/pborman/uuid"
 )
 
 // Represents a Connection.
@@ -47,12 +45,11 @@ import (
 type Connection struct {
 	HasTimeouted       bool
 	Timeout            time.Duration
-	TransactionID      string
 	UsesAuthentication bool
 	UserInfo           interface{}
 }
 
-func sendNativeRequest(request *Request) *Response {
+var sendNativeRequest = func(request *Request) *Response {
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -94,8 +91,7 @@ func sendNativeRequest(request *Request) *Response {
 func NewConnection() *Connection {
 
 	return &Connection{
-		Timeout:       time.Duration(60) * time.Millisecond,
-		TransactionID: uuid.New(),
+		Timeout: time.Duration(60) * time.Second,
 	}
 }
 
@@ -103,7 +99,6 @@ func NewConnection() *Connection {
 //
 // If the request is a success, then a response will be returned and the error will be nil.
 // In case of error, the error will be returned, and the response will be nil.
-
 func (c *Connection) Start(request *Request) (*Response, *Error) {
 	session := CurrentSession()
 	request.SetHeader("X-Nuage-Organization", session.Organization)
@@ -111,33 +106,30 @@ func (c *Connection) Start(request *Request) (*Response, *Error) {
 	request.SetHeader("Content-Type", "application/json")
 
 	logger := Logger()
-	logger.Infof("Req : %s %s %s (id: %s)", request.Method, request.URL, request.Parameters, c.TransactionID)
+	logger.Infof("Req : %s %s %s", request.Method, request.URL, request.Parameters)
 	logger.Debugf("Req : Headers: %s", request.Headers)
 	logger.Debugf("Req : Data: %s", request.Data)
 
 	response := sendNativeRequest(request)
 
 	defer func() {
-		logger.Debugf("Resp: %d (id: %s)", response.Code, c.TransactionID)
+		logger.Debugf("Resp: %s %s %s", request.Method, request.URL, request.Parameters)
 		logger.Debugf("Resp: Headers: %s", response.Headers)
 		logger.Debugf("Resp: Data: %s", response.Data)
 	}()
 
 	switch response.Code {
+
+	case ResponseCodeSuccess, ResponseCodeCreated, ResponseCodeEmpty:
+		return response, nil
+
 	case ResponseCodeMultipleChoices:
 		request.URL += "?responseChoice=1"
 		return c.Start(request)
 
-	case ResponseCodeSuccess, ResponseCodeCreated:
-		return response, nil
-
-	case ResponseCodeEmpty:
-		return response, nil
-
 	case ResponseCodeConflict:
 		error := NewError(response.Code, string(response.Data))
 		json.Unmarshal(response.Data, &error)
-
 		return nil, error
 
 	case ResponseCodeAuthenticationExpired:

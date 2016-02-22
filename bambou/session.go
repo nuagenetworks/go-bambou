@@ -62,7 +62,7 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 }
 
 // Returns the current active and authenticated Session.
-func CurrentSession() *Session {
+var CurrentSession = func() *Session {
 
 	return currentSession
 }
