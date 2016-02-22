@@ -442,5 +442,34 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
+		Convey("When I start a connection with the request that returns an unknown code", func() {
+
+			defer patch(&sendNativeRequest, func(request *Request) *Response {
+				return &Response{
+					Headers: make(map[string]string),
+					Code:    666,
+				}
+			}).restore()
+
+			req := NewRequest("http://fake.com/hello")
+			resp, err := c.Start(req)
+
+			Convey("Then response should be bil", func() {
+				So(resp, ShouldBeNil)
+			})
+
+			Convey("Then error should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("Then error Code should be ResponseCodeServiceUnavailable", func() {
+				So(err.Code, ShouldEqual, 666)
+			})
+
+			Convey("Then error Message should be 'Service unavailable.'", func() {
+				So(err.Message, ShouldEqual, "Unknown error.")
+			})
+		})
+
 	})
 }
