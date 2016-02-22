@@ -35,7 +35,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func Testrequest_newRequest(t *testing.T) {
+func TestRequest_newRequest(t *testing.T) {
 
 	Convey("Given I create a new request", t, func() {
 		r := newRequest("https://fake.com")
@@ -58,7 +58,7 @@ func Testrequest_newRequest(t *testing.T) {
 	})
 }
 
-func Testrequest_SetgetHeader(t *testing.T) {
+func TestRequest_SetGetHeader(t *testing.T) {
 
 	Convey("Given I create a new request", t, func() {
 		r := newRequest("https://fake.com")
@@ -73,7 +73,7 @@ func Testrequest_SetgetHeader(t *testing.T) {
 	})
 }
 
-func Testrequest_SetgetParameter(t *testing.T) {
+func TestRequest_SetGetParameter(t *testing.T) {
 
 	Convey("Given I create a new request", t, func() {
 		r := newRequest("https://fake.com")
@@ -88,7 +88,7 @@ func Testrequest_SetgetParameter(t *testing.T) {
 	})
 }
 
-func TestReques_toNative(t *testing.T) {
+func TestRequest_toNative(t *testing.T) {
 
 	Convey("Given I create new request with default values", t, func() {
 		r := newRequest("https://fake.com")

@@ -42,7 +42,7 @@ type eventHandlers map[string]EventHandler
 
 // Represents a Push Center
 type PushCenter struct {
-	IsRunning bool
+	isRunning bool
 	Channel   chan *Notification
 
 	handlers      eventHandlers
@@ -91,6 +91,9 @@ func (p *PushCenter) UnregisterHandlerForIdentity(identity Identity) {
 
 func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 
+	if identity.RESTName == AllIdentity.RESTName {
+		return p.defaultHander != nil
+	}
 	_, exists := p.handlers[identity.RESTName]
 	return exists
 }
@@ -98,7 +101,7 @@ func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 // Starts the Push Center.
 func (p *PushCenter) Start() {
 
-	p.IsRunning = true
+	p.isRunning = true
 	p.lastEventID = ""
 
 	go func() {
@@ -129,7 +132,7 @@ func (p *PushCenter) Start() {
 // Stops a running PushCenter.
 func (p *PushCenter) Stop() {
 
-	p.IsRunning = false
+	p.isRunning = false
 	p.lastEventID = ""
 	p.stop <- true
 }
@@ -150,7 +153,7 @@ func (p *PushCenter) listen() {
 	response, error := connection.start(request)
 
 	// if the push center not running anymore, return
-	if !p.IsRunning {
+	if !p.isRunning {
 		return
 	}
 

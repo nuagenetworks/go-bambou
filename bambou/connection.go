@@ -49,7 +49,7 @@ type connection struct {
 	UserInfo           interface{}
 }
 
-var sendNativerequest = func(request *request) *response {
+var sendNativeRequest = func(request *request) *response {
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -104,7 +104,7 @@ func (c *connection) start(request *request) (*response, *Error) {
 	logger.Debugf("Req : Headers: %s", request.Headers)
 	logger.Debugf("Req : Data: %s", request.Data)
 
-	response := sendNativerequest(request)
+	response := sendNativeRequest(request)
 
 	defer func() {
 		logger.Debugf("Resp: %d %s %s %s", response.Code, request.Method, request.URL, request.Parameters)
