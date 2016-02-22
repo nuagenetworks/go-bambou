@@ -38,14 +38,14 @@ import (
 type EventHandler func(*Event)
 
 // Represents a list of Push Center Handlers
-type EventHandlers map[string]EventHandler
+type eventHandlers map[string]EventHandler
 
 // Represents a Push Center
 type PushCenter struct {
 	IsRunning bool
 	Channel   chan *Notification
 
-	handlers      EventHandlers
+	handlers      eventHandlers
 	defaultHander EventHandler
 	lastEventID   string
 	stop          chan bool
@@ -57,7 +57,7 @@ func NewPushCenter() *PushCenter {
 	return &PushCenter{
 		Channel:  make(chan *Notification),
 		stop:     make(chan bool),
-		handlers: EventHandlers{},
+		handlers: eventHandlers{},
 	}
 }
 
