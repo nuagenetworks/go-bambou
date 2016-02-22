@@ -35,7 +35,7 @@ import (
 	"reflect"
 )
 
-// Interface for Operationables objects.
+// Operationable is the interface of objects that can be used with the operation functions.
 type Operationable interface {
 	Fetch() *Error
 	Save() *Error
@@ -45,7 +45,7 @@ type Operationable interface {
 	GetURLForChildrenIdentity(Identity) string
 }
 
-// Fetchs the given Exposable from the server.
+// FetchEntity fetchs the given Exposable from the server.
 func FetchEntity(object Operationable) *Error {
 
 	request := newRequest(object.GetPersonalURL())
@@ -66,7 +66,7 @@ func FetchEntity(object Operationable) *Error {
 	return nil
 }
 
-// Saves the given Exposable into the server.
+// SaveEntity saves the given Exposable into the server.
 func SaveEntity(object Exposable) *Error {
 
 	data, _ := json.Marshal(object)
@@ -92,7 +92,7 @@ func SaveEntity(object Exposable) *Error {
 	return nil
 }
 
-// Deletes the given Exposable from the server.
+// DeleteEntity deletes the given Exposable from the server.
 func DeleteEntity(object Exposable) *Error {
 
 	request := newRequest(object.GetPersonalURL())
@@ -109,7 +109,7 @@ func DeleteEntity(object Exposable) *Error {
 	return nil
 }
 
-// Fetches the children with of given parent identified by the given identify.
+// FetchChildren fetches the children with of given parent identified by the given identify.
 //
 // The dest parameters must be a pointer to some Exposable object.
 // The given FetchingInfo will be used to apply pagination, or filtering etc, and will
@@ -141,7 +141,7 @@ func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *
 	return nil
 }
 
-// Creates a new child Exposable under the given parent Exposable in the server.
+// CreateChild creates a new child Exposable under the given parent Exposable in the server.
 //
 // In case of error, an *Error is returned, otherwise nil.
 func CreateChild(parent Exposable, child Exposable) *Error {
@@ -169,7 +169,7 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 	return nil
 }
 
-// Assign the list of given child Exposables to the given Exposable parent in the server.
+// AssignChildren assigns the list of given child Exposables to the given Exposable parent in the server.
 //
 // You must provide the Identity of the children you want to assign. This is mandatory in
 // case you want to unassign all objects.

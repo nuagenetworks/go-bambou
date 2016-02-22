@@ -29,10 +29,13 @@
 
 package bambou
 
-// List of *Event.
+// EventsList represents a list of *Event.
 type EventsList []*Event
 
-// Represents a Push Event.
+// Event represents one item of a Notification.
+//
+// It will contain data from the server regarding the object that has
+// been created, deleted, or modified.
 type Event struct {
 	DataMap         []map[string]interface{} `json:"entities"`
 	Data            []byte                   `json:"-"`
@@ -41,16 +44,15 @@ type Event struct {
 	UpdateMechanism string                   `json:"updateMechanism"`
 }
 
-// Represents a Push Notification.
+// Notification represents a collection of Event structures.
 //
-// A Push Notification is a collection of Events, plus a
-// few additional information.
+// It also contains a identifier for the Notification.
 type Notification struct {
 	Events EventsList `json:"events"`
 	UUID   string     `json:"uuid"`
 }
 
-// Returns a new *Event.
+// NewNotification returns a new *Notification.
 func NewNotification() *Notification {
 
 	return &Notification{

@@ -29,5 +29,10 @@
 
 /*
 Package bambou provides the basic contructs used by ReST frameworks generated using Monolithe.
+
+Bambou provides a set of objects that allow the manipulation of ReST entities very easily. It deals with all possible CRUD operations and
+defines all these low level operations in a single place.
+
+
 */
 package bambou

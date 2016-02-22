@@ -35,7 +35,9 @@ import (
 	"strings"
 )
 
-// Children fecthing information.
+// FetchingInfo is a structure that contains differents values about
+// the fetching of children, either for the user to set, of for the server
+// to fill.
 //
 // This structure will be used to pass and get back information
 // during the fetching of some children.
@@ -49,7 +51,7 @@ type FetchingInfo struct {
 	TotalCount int
 }
 
-// Returns a new *FetchingInfo
+// NewFetchingInfo returns a new *FetchingInfo
 func NewFetchingInfo() *FetchingInfo {
 
 	return &FetchingInfo{
@@ -58,7 +60,7 @@ func NewFetchingInfo() *FetchingInfo {
 	}
 }
 
-// String representation of the FetchingInfo.
+// String returns the string representation of the FetchingInfo.
 func (f *FetchingInfo) String() string {
 
 	return fmt.Sprintf("<FetchingInfo page: %d, pagesize: %d, totalcount: %d>", f.Page, f.PageSize, f.TotalCount)

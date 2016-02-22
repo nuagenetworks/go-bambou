@@ -24,7 +24,7 @@ func TestIdentity_AllIdentity(t *testing.T) {
 func TestIdentity_NewIdentity(t *testing.T) {
 
 	Convey("Given I create a new identity", t, func() {
-		i := NewIdentity("restname", "resourcename")
+		i := Identity{"restname", "resourcename"}
 
 		Convey("Then RESTName should restname", func() {
 			So(i.RESTName, ShouldEqual, "restname")
@@ -39,7 +39,7 @@ func TestIdentity_NewIdentity(t *testing.T) {
 func TestIdentity_String(t *testing.T) {
 
 	Convey("Given I create a new identity", t, func() {
-		i := NewIdentity("restname", "resourcename")
+		i := Identity{"restname", "resourcename"}
 
 		Convey("Then String should <restname|resourcename>", func() {
 			So(i.String(), ShouldEqual, "<restname|resourcename>")

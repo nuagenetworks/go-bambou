@@ -38,7 +38,7 @@ import (
 	"time"
 )
 
-// Represents a Connection.
+// connection epresents a connection to a remote server.
 //
 // It is wrapper over the standard net/http
 // client. You should never have to use it manually.

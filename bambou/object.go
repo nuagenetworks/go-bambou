@@ -33,22 +33,20 @@ import (
 	"fmt"
 )
 
-// Represents a list of Exposables.
+// ExposablesList represents a list of Exposables.
 type ExposablesList []Exposable
 
-// Interface of a Exposable object.
+// Exposable is the interface of objects that can be retrieved and sent to the server.
 //
-// An Exposable also implements the Identifiable and Operationable interfaces.
+// An Exposable implements the Identifiable and Operationable interfaces.
 type Exposable interface {
 	Identifiable
 	Operationable
 }
 
-// Interface of a Rootable object.
+// Rootable is the interface that must be implemented by the root object of the API.
 //
-// An Rootable also implements the Identifiable and Exposable. Rootable
-// is the interface an object must implement in order to be able to act
-// as a root api object. For instance for "/auth".
+// A Rootable also implements the Exposable. Rootable
 type Rootable interface {
 	Exposable
 
@@ -56,7 +54,8 @@ type Rootable interface {
 	SetAPIKey(string)
 }
 
-// Represents an object that is exposed throught the ReST api.
+// ExposedObject represents an object than contains information common to all objects.
+// exposed by the server.
 //
 // This struct must be embedded into all objects that are available
 // throught the ReST api.
@@ -69,13 +68,13 @@ type ExposedObject struct {
 	Identity     Identity `json:"-"`
 }
 
-// Returns the Identity
+// GetIdentity returns the Identity
 func (o *ExposedObject) GetIdentity() Identity {
 
 	return o.Identity
 }
 
-// Returns the URL that holds the information about the object.
+// GetGeneralURL returns the URL of a list of the objects.
 func (o *ExposedObject) GetGeneralURL() string {
 
 	if o.Identity.ResourceName == "" {
@@ -85,6 +84,7 @@ func (o *ExposedObject) GetGeneralURL() string {
 	return CurrentSession().URL + "/" + o.Identity.ResourceName
 }
 
+// GetPersonalURL returns the URL that holds the information about the object.
 func (o *ExposedObject) GetPersonalURL() string {
 
 	if o.ID == "" {
@@ -94,16 +94,16 @@ func (o *ExposedObject) GetPersonalURL() string {
 	return o.GetGeneralURL() + "/" + o.ID
 }
 
-// Returns the URL of children with the given identity
+// GetURLForChildrenIdentity returns the URL of children with the given identity.
 //
-// The URL will be constructed based on the current object URL and the identity of
+// The URL will be constructed based on the current object GetPersonalURL value and the identity of
 // the children.
 func (o *ExposedObject) GetURLForChildrenIdentity(identity Identity) string {
 
 	return o.GetPersonalURL() + "/" + identity.ResourceName
 }
 
-// Returns the string representation of the object
+// String returns the string representation of the object.
 func (o *ExposedObject) String() string {
 
 	return fmt.Sprintf("<%s:%s>", o.Identity.RESTName, o.ID)

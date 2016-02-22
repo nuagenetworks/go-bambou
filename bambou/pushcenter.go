@@ -34,13 +34,17 @@ import (
 	"io"
 )
 
-// Signature of a Push Center Handler.
+// EventHandler is prototype of a Push Center Handler.
 type EventHandler func(*Event)
 
-// Represents a list of Push Center Handlers
+// eventHandlers represents a map of EventHandler based on the identity.
 type eventHandlers map[string]EventHandler
 
-// Represents a Push Center
+// PushCenter is a structure that allows the user to deal with notifications.
+//
+// You can register multiple handlers for several Identity. When a notification
+// is sent by the server and the Identity of its content matches one of the
+// registered handler, this handler will be called.
 type PushCenter struct {
 	isRunning bool
 	Channel   chan *Notification
@@ -51,7 +55,7 @@ type PushCenter struct {
 	stop          chan bool
 }
 
-// Creates a new Push Center
+// NewPushCenter creates a new PushCenter.
 func NewPushCenter() *PushCenter {
 
 	return &PushCenter{
@@ -61,7 +65,7 @@ func NewPushCenter() *PushCenter {
 	}
 }
 
-// Registers the given EventHandler for the given Entity Identity.
+// RegisterHandlerForIdentity registers the given EventHandler for the given Entity Identity.
 //
 // You can pass the bambou.AllIdentity as identity to register the handler
 // for all events. If you pass a handler for an Identity that is already registered
@@ -76,7 +80,7 @@ func (p *PushCenter) RegisterHandlerForIdentity(handler EventHandler, identity I
 	p.handlers[identity.RESTName] = handler
 }
 
-// Registers the given EventHandler for the given Entity Identity.
+// UnregisterHandlerForIdentity unegisters the given EventHandler for the given Entity Identity.
 func (p *PushCenter) UnregisterHandlerForIdentity(identity Identity) {
 
 	if identity.RESTName == AllIdentity.RESTName {
@@ -89,6 +93,7 @@ func (p *PushCenter) UnregisterHandlerForIdentity(identity Identity) {
 	}
 }
 
+// HasHandlerForIdentity verifies if the given identity has a registered handler.
 func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 
 	if identity.RESTName == AllIdentity.RESTName {
@@ -98,7 +103,7 @@ func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 	return exists
 }
 
-// Starts the Push Center.
+// Start starts the Push Center.
 func (p *PushCenter) Start() {
 
 	p.isRunning = true
@@ -129,7 +134,7 @@ func (p *PushCenter) Start() {
 	}()
 }
 
-// Stops a running PushCenter.
+// Stop stops a running PushCenter.
 func (p *PushCenter) Stop() {
 
 	p.isRunning = false

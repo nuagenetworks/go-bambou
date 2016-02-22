@@ -35,7 +35,7 @@ import (
 
 var currentSession *Session
 
-// Represents a user session.
+// Session represents a user session.
 type Session struct {
 	Root         Rootable
 	Certificate  string
@@ -46,7 +46,7 @@ type Session struct {
 	URL          string
 }
 
-// Returns a new *Session
+// NewSession returns a new *Session
 //
 // You need to provide a Rootable object that will be used to contain
 // the results of the authentication process, like the api key for instance.
@@ -61,13 +61,13 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 	}
 }
 
-// Returns the current active and authenticated Session.
+// CurrentSession returns the current active and authenticated Session.
 var CurrentSession = func() *Session {
 
 	return currentSession
 }
 
-// Returns the computed Authorization HTTP header.
+// makeAuthorizationHeaders returns the computed Authorization HTTP header.
 func (s *Session) makeAuthorizationHeaders() string {
 
 	if s.Username == "" {
@@ -89,7 +89,7 @@ func (s *Session) makeAuthorizationHeaders() string {
 	return "XREST " + base64.StdEncoding.EncodeToString([]byte(s.Username+":"+key))
 }
 
-// Starts the session.
+// Start starts the session.
 //
 // At that point the authentication will be done.
 func (s *Session) Start() *Error {
@@ -108,7 +108,7 @@ func (s *Session) Start() *Error {
 	return nil
 }
 
-// Resets the session.
+// Reset resets the session.
 func (s *Session) Reset() {
 
 	s.APIKey = ""

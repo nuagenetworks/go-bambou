@@ -33,16 +33,16 @@ import (
 	"fmt"
 )
 
-// List of *ErrorDescriptions.
+// ErrorDescriptionsList represents a list of *ErrorDescriptions.
 type ErrorDescriptionsList []*ErrorDescription
 
-// Represents an entry in the Error.
+// ErrorDescription represents an entry in an Error.
 type ErrorDescription struct {
 	Description string `json:"description"`
 	Title       string `json:"title"`
 }
 
-// Represent an connection Error.
+// Error represent an connection error.
 type Error struct {
 	Code         int                   `json:"-"`
 	Property     string                `json:"property"`
@@ -50,7 +50,7 @@ type Error struct {
 	Descriptions ErrorDescriptionsList `json:"descriptions"`
 }
 
-// Returns a new *Error.
+// NewError returns a new *Error.
 //
 // You can give a message, that will be used, if no additional
 // information is given by the server. Otherwhise Message will be
@@ -62,7 +62,7 @@ func NewError(code int, message string) *Error {
 	}
 }
 
-// Returns the string representation of the Error
+// Error returns the string representation of the Error.
 func (e *Error) Error() string {
 
 	return fmt.Sprintf("<Error: %d, message: %s>", e.Code, e.Message)

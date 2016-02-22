@@ -35,7 +35,7 @@ import (
 
 var defaultLogger *logging.Logger
 
-// Returns the defaut bambou logger
+// Logger returns the defaut Bambou logger.
 func Logger() *logging.Logger {
 
 	if defaultLogger == nil {
