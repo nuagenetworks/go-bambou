@@ -64,7 +64,7 @@ func TestSession_NewSession(t *testing.T) {
 	})
 }
 
-func TestSession_MakeAuthorizationHeaders(t *testing.T) {
+func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
@@ -73,7 +73,7 @@ func TestSession_MakeAuthorizationHeaders(t *testing.T) {
 		Convey("When I prepare the Headers with a session that doesn't have an APIKey", func() {
 
 			s := NewSession("username", "password", "organization", "http://url.com", r)
-			h := s.MakeAuthorizationHeaders()
+			h := s.makeAuthorizationHeaders()
 
 			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ", func() {
 				So(h, ShouldEqual, "XREST dXNlcm5hbWU6cGFzc3dvcmQ=")
@@ -84,7 +84,7 @@ func TestSession_MakeAuthorizationHeaders(t *testing.T) {
 
 			s := NewSession("username", "password", "organization", "http://url.com", r)
 			s.APIKey = "api-key"
-			h := s.MakeAuthorizationHeaders()
+			h := s.makeAuthorizationHeaders()
 
 			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ", func() {
 				So(h, ShouldEqual, "XREST dXNlcm5hbWU6YXBpLWtleQ==")
@@ -96,7 +96,7 @@ func TestSession_MakeAuthorizationHeaders(t *testing.T) {
 			s := NewSession("", "password", "organization", "http://url.com", r)
 
 			Convey("It should panic", func() {
-				So(func() { s.MakeAuthorizationHeaders() }, ShouldPanic)
+				So(func() { s.makeAuthorizationHeaders() }, ShouldPanic)
 			})
 		})
 
@@ -105,7 +105,7 @@ func TestSession_MakeAuthorizationHeaders(t *testing.T) {
 			s := NewSession("username", "", "organization", "http://url.com", r)
 
 			Convey("It should panic", func() {
-				So(func() { s.MakeAuthorizationHeaders() }, ShouldPanic)
+				So(func() { s.makeAuthorizationHeaders() }, ShouldPanic)
 			})
 		})
 	})

@@ -47,8 +47,8 @@ func TestOperations_FetchEntity(t *testing.T) {
 
 		Convey("When I fetch it with success", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("[{\"ID\": \"xxx\", \"parentType\": \"pedro\", \"parentID\": \"yyy\"}]"),
 				}
@@ -67,8 +67,8 @@ func TestOperations_FetchEntity(t *testing.T) {
 
 		Convey("When I fetch it and I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()
@@ -82,8 +82,8 @@ func TestOperations_FetchEntity(t *testing.T) {
 
 		Convey("When I fetch it and I got bad json", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("definitely a bad json"),
 				}
@@ -108,8 +108,8 @@ func TestOperations_SaveEntity(t *testing.T) {
 
 		Convey("When I save it with success", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("[{\"ID\": \"zzz\", \"parentType\": \"pedro\", \"parentID\": \"yyy\"}]"),
 				}
@@ -124,8 +124,8 @@ func TestOperations_SaveEntity(t *testing.T) {
 
 		Convey("When I save it and I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()
@@ -139,8 +139,8 @@ func TestOperations_SaveEntity(t *testing.T) {
 
 		Convey("When I save it and I got bad json", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("definitely a bad json"),
 				}
@@ -165,8 +165,8 @@ func TestOperations_DeleteEntity(t *testing.T) {
 
 		Convey("When I delete it with success", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("[{\"ID\": \"zzz\", \"parentType\": \"pedro\", \"parentID\": \"yyy\"}]"),
 				}
@@ -181,8 +181,8 @@ func TestOperations_DeleteEntity(t *testing.T) {
 
 		Convey("When I delete it and I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()
@@ -208,8 +208,8 @@ func TestOperations_FetchChildren(t *testing.T) {
 
 		Convey("When I Fetch its children with success", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("[{\"ID\": \"1\"}, {\"ID\": \"2\"}]"),
 				}
@@ -233,8 +233,8 @@ func TestOperations_FetchChildren(t *testing.T) {
 
 		Convey("When I fetch the children and I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()
@@ -249,8 +249,8 @@ func TestOperations_FetchChildren(t *testing.T) {
 
 		Convey("When I fetch the children I got bad json", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("definitely a bad json"),
 				}
@@ -278,8 +278,8 @@ func TestOperations_CreateChild(t *testing.T) {
 
 		Convey("When I create it with success", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 201,
 					Data: []byte("[{\"ID\": \"zzz\"}]"),
 				}
@@ -294,8 +294,8 @@ func TestOperations_CreateChild(t *testing.T) {
 
 		Convey("When I create it I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()
@@ -309,8 +309,8 @@ func TestOperations_CreateChild(t *testing.T) {
 
 		Convey("When I create it I got bad json", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 200,
 					Data: []byte("definitely a bad json"),
 				}
@@ -331,8 +331,8 @@ func TestOperations_AssignChildren(t *testing.T) {
     
 	Convey("Given I create a new Exposed object and a list of children to assign", t, func() {
 
-		defer patch(&sendNativeRequest, func(request *Request) *Response {
-			return &Response{
+		defer patch(&sendNativerequest, func(request *request) *response {
+			return &response{
 				Code: 200,
 			}
 		}).restore()
@@ -351,8 +351,8 @@ func TestOperations_AssignChildren(t *testing.T) {
 
 		Convey("When I assign them I got an communication error", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Code: 500,
 				}
 			}).restore()

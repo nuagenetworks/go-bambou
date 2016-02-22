@@ -78,7 +78,7 @@ func (i Identity) String() string {
 // This function applies the given BBIdentity to the given
 // list. The type of the list parameters must be a slice of
 // pointer to struct that implement the Exposable interface.
-func Identify(list interface{}, identity Identity) {
+func identify(list interface{}, identity Identity) {
 
 	l := reflect.ValueOf(list).Elem().Len()
 

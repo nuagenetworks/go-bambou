@@ -35,10 +35,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestResponse_NewResponse(t *testing.T) {
+func Testresponse_newResponse(t *testing.T) {
 
-	Convey("Given I create a new Request", t, func() {
-		r := NewResponse()
+	Convey("Given I create a new request", t, func() {
+		r := newResponse()
 
 		Convey("Then Headers should should not be nil", func() {
 			So(r.Headers, ShouldNotBeNil)
@@ -46,16 +46,16 @@ func TestResponse_NewResponse(t *testing.T) {
 	})
 }
 
-func TestResponse_SetGetHeader(t *testing.T) {
+func Testresponse_SetgetHeader(t *testing.T) {
 
-	Convey("Given I create a new Request", t, func() {
-		r := NewResponse()
+	Convey("Given I create a new request", t, func() {
+		r := newResponse()
 
 		Convey("When I set the header 'header' to 'value'", func() {
-			r.SetHeader("header", "value")
+			r.setHeader("header", "value")
 
 			Convey("Then value of header should value", func() {
-				So(r.GetHeader("header"), ShouldEqual, "value")
+				So(r.getHeader("header"), ShouldEqual, "value")
 			})
 		})
 	})

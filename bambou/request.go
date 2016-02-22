@@ -35,15 +35,15 @@ import (
 )
 
 const (
-	RequestMethodDelete = "DELETE"
-	RequestMethodGet    = "GET"
-	RequestMethodHead   = "HEAD"
-	RequestMethodPost   = "POST"
-	RequestMethodPut    = "PUT"
+	requestMethodDelete = "DELETE"
+	requestMethodGet    = "GET"
+	requestMethodHead   = "HEAD"
+	requestMethodPost   = "POST"
+	requestMethodPut    = "PUT"
 )
 
-// Represents a Request.
-type Request struct {
+// Represents a request.
+type request struct {
 	Data       []byte
 	Headers    map[string]string
 	Identifier string
@@ -52,43 +52,43 @@ type Request struct {
 	Method     string
 }
 
-// Returns a new  *Request.
-func NewRequest(url string) *Request {
+// Returns a new  *request.
+func newRequest(url string) *request {
 
-	return &Request{
+	return &request{
 		URL:        url,
 		Headers:    make(map[string]string),
 		Parameters: make(map[string]string),
-		Method:     RequestMethodGet,
+		Method:     requestMethodGet,
 	}
 }
 
 // Sets the value of Header field.
-func (r *Request) SetHeader(name, value string) {
+func (r *request) setHeader(name, value string) {
 
 	r.Headers[name] = value
 }
 
 // Returns the value of Header field.
-func (r *Request) GetHeader(name string) string {
+func (r *request) getHeader(name string) string {
 
 	return r.Headers[name]
 }
 
 // Sets the value of a query parameter.
-func (r *Request) SetParameter(name, value string) {
+func (r *request) setParameter(name, value string) {
 
 	r.Parameters[name] = value
 }
 
 // Gets the value of a query parameter.
-func (r *Request) GetParameter(name string) string {
+func (r *request) getParameter(name string) string {
 
 	return r.Parameters[name]
 }
 
 // Returns a native http.Request.
-func (r *Request) ToNative() *http.Request {
+func (r *request) toNative() *http.Request {
 
 	req, _ := http.NewRequest(r.Method, r.URL, bytes.NewBuffer(r.Data))
 

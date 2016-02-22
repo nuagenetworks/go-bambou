@@ -47,7 +47,7 @@ func TestIdentity_String(t *testing.T) {
 	})
 }
 
-func TestIdentity_Identify(t *testing.T) {
+func TestIdentity_identify(t *testing.T) {
 
 	Convey("Given I create a new identity", t, func() {
 
@@ -59,7 +59,7 @@ func TestIdentity_Identify(t *testing.T) {
 		Convey("When I Identity some objects with the new Identity", func() {
 
 			l := fakeIdentifiedsList{&fakeIdentified{}, &fakeIdentified{}}
-			Identify(&l, i)
+			identify(&l, i)
 
 			Convey("Then all objects should have the correct identity", func() {
 				So(l[0].GetIdentity(), ShouldResemble, i)

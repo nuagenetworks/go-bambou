@@ -145,9 +145,9 @@ func (p *PushCenter) listen() {
 		currentURL += "?uuid=" + p.lastEventID
 	}
 
-	request := NewRequest(currentURL)
-	connection := NewConnection()
-	response, error := connection.Start(request)
+	request := newRequest(currentURL)
+	connection := newConnection()
+	response, error := connection.start(request)
 
 	// if the push center not running anymore, return
 	if !p.IsRunning {

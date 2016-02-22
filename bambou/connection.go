@@ -42,14 +42,14 @@ import (
 //
 // It is wrapper over the standard net/http
 // client. You should never have to use it manually.
-type Connection struct {
+type connection struct {
 	HasTimeouted       bool
 	Timeout            time.Duration
 	UsesAuthentication bool
 	UserInfo           interface{}
 }
 
-var sendNativeRequest = func(request *Request) *Response {
+var sendNativerequest = func(request *request) *response {
 
 	transport := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -59,7 +59,7 @@ var sendNativeRequest = func(request *Request) *Response {
 		Transport: transport,
 	}
 
-	nativeResponse, err := client.Do(request.ToNative())
+	nativeResponse, err := client.Do(request.toNative())
 
 	if nativeResponse != nil {
 		defer nativeResponse.Body.Close()
@@ -69,11 +69,11 @@ var sendNativeRequest = func(request *Request) *Response {
 		panic("Error while performing the request: " + err.Error())
 	}
 
-	response := NewResponse()
+	response := newResponse()
 	response.Code = nativeResponse.StatusCode
 
 	for h, v := range nativeResponse.Header {
-		response.SetHeader(h, strings.Join(v, ", "))
+		response.setHeader(h, strings.Join(v, ", "))
 	}
 
 	response.Data, _ = ioutil.ReadAll(nativeResponse.Body)
@@ -82,80 +82,80 @@ var sendNativeRequest = func(request *Request) *Response {
 }
 
 // Returns a pointer to a new *Connection.
-func NewConnection() *Connection {
+func newConnection() *connection {
 
-	return &Connection{
+	return &connection{
 		Timeout: time.Duration(60) * time.Second,
 	}
 }
 
-// Starts the connection with the given Request.
+// Starts the connection with the given request.
 //
 // If the request is a success, then a response will be returned and the error will be nil.
 // In case of error, the error will be returned, and the response will be nil.
-func (c *Connection) Start(request *Request) (*Response, *Error) {
+func (c *connection) start(request *request) (*response, *Error) {
 	session := CurrentSession()
-	request.SetHeader("X-Nuage-Organization", session.Organization)
-	request.SetHeader("Authorization", session.MakeAuthorizationHeaders())
-	request.SetHeader("Content-Type", "application/json")
+	request.setHeader("X-Nuage-Organization", session.Organization)
+	request.setHeader("Authorization", session.makeAuthorizationHeaders())
+	request.setHeader("Content-Type", "application/json")
 
 	logger := Logger()
 	logger.Infof("Req : %s %s %s", request.Method, request.URL, request.Parameters)
 	logger.Debugf("Req : Headers: %s", request.Headers)
 	logger.Debugf("Req : Data: %s", request.Data)
 
-	response := sendNativeRequest(request)
+	response := sendNativerequest(request)
 
 	defer func() {
-		logger.Debugf("Resp: %s %s %s", request.Method, request.URL, request.Parameters)
+		logger.Debugf("Resp: %d %s %s %s", response.Code, request.Method, request.URL, request.Parameters)
 		logger.Debugf("Resp: Headers: %s", response.Headers)
 		logger.Debugf("Resp: Data: %s", response.Data)
 	}()
 
 	switch response.Code {
 
-	case ResponseCodeSuccess, ResponseCodeCreated, ResponseCodeEmpty:
+	case responseCodeSuccess, responseCodeCreated, responseCodeEmpty:
 		return response, nil
 
-	case ResponseCodeMultipleChoices:
+	case responseCodeMultipleChoices:
 		request.URL += "?responseChoice=1"
-		return c.Start(request)
+		return c.start(request)
 
-	case ResponseCodeConflict:
+	case responseCodeConflict:
 		error := NewError(response.Code, string(response.Data))
 		json.Unmarshal(response.Data, &error)
 		return nil, error
 
-	case ResponseCodeAuthenticationExpired:
+	case responseCodeAuthenticationExpired:
 		CurrentSession().Reset()
 		CurrentSession().Start()
-		return c.Start(request)
+		return c.start(request)
 
-	case ResponseCodeBadRequest:
+	case responseCodeBadrequest:
 		return nil, NewError(response.Code, "Bad request.")
 
-	case ResponseCodeUnauthorized:
+	case responseCodeUnauthorized:
 		return nil, NewError(response.Code, "Unauthorized.")
 
-	case ResponseCodePermissionDenied:
+	case responseCodePermissionDenied:
 		return nil, NewError(response.Code, "Permission denied.")
 
-	case ResponseCodeMethodNotAllowed:
+	case responseCodeMethodNotAllowed:
 		return nil, NewError(response.Code, "Not allowed.")
 
-	case ResponseCodeNotFound:
+	case responseCodeNotFound:
 		return nil, NewError(response.Code, "Not found.")
 
-	case ResponseCodeConnectionTimeout:
+	case responseCodeConnectionTimeout:
 		return nil, NewError(response.Code, "Timeout.")
 
-	case ResponseCodePreconditionFailed:
+	case responseCodePreconditionFailed:
 		return nil, NewError(response.Code, "Precondition failed.")
 
-	case ResponseCodeInternalServerError:
+	case responseCodeInternalServerError:
 		return nil, NewError(response.Code, "Internal server error.")
 
-	case ResponseCodeServiceUnavailable:
+	case responseCodeServiceUnavailable:
 		return nil, NewError(response.Code, "Service unavailable.")
 
 	default:

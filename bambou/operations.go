@@ -48,9 +48,9 @@ type Operationable interface {
 // Fetchs the given Exposable from the server.
 func FetchEntity(object Operationable) *Error {
 
-	request := NewRequest(object.GetPersonalURL())
-	connection := NewConnection()
-	response, error := connection.Start(request)
+	request := newRequest(object.GetPersonalURL())
+	connection := newConnection()
+	response, error := connection.start(request)
 
 	if error != nil {
 		Logger().Errorf("Error during FetchEntity: %s", error.Error())
@@ -71,12 +71,12 @@ func SaveEntity(object Exposable) *Error {
 
 	data, _ := json.Marshal(object)
 
-	request := NewRequest(object.GetPersonalURL())
-	request.Method = RequestMethodPut
+	request := newRequest(object.GetPersonalURL())
+	request.Method = requestMethodPut
 	request.Data = data
 
-	connection := NewConnection()
-	response, err1 := connection.Start(request)
+	connection := newConnection()
+	response, err1 := connection.start(request)
 
 	if err1 != nil {
 		Logger().Errorf("Error during SaveEntity: %s", err1.Error())
@@ -95,11 +95,11 @@ func SaveEntity(object Exposable) *Error {
 // Deletes the given Exposable from the server.
 func DeleteEntity(object Exposable) *Error {
 
-	request := NewRequest(object.GetPersonalURL())
-	request.Method = RequestMethodDelete
+	request := newRequest(object.GetPersonalURL())
+	request.Method = requestMethodDelete
 
-	connection := NewConnection()
-	_, error := connection.Start(request)
+	connection := newConnection()
+	_, error := connection.start(request)
 
 	if error != nil {
 		Logger().Errorf("Error during DeleteEntity: %s", error.Error())
@@ -109,7 +109,7 @@ func DeleteEntity(object Exposable) *Error {
 	return nil
 }
 
-// Fetches the children with of given parent identified by the given Identify.
+// Fetches the children with of given parent identified by the given identify.
 //
 // The dest parameters must be a pointer to some Exposable object.
 // The given FetchingInfo will be used to apply pagination, or filtering etc, and will
@@ -117,11 +117,11 @@ func DeleteEntity(object Exposable) *Error {
 // In case of error, an *Error is returned, otherwise nil.
 func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
-	request := NewRequest(parent.GetURLForChildrenIdentity(identity))
+	request := newRequest(parent.GetURLForChildrenIdentity(identity))
 	prepareHeaders(request, info)
 
-	connection := NewConnection()
-	response, error := connection.Start(request)
+	connection := newConnection()
+	response, error := connection.start(request)
 
 	if error != nil {
 		Logger().Errorf("Error during FetchChildren: %s", error.Error())
@@ -136,7 +136,7 @@ func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *
 
 	readHeaders(response, info)
 
-	Identify(dest, identity)
+	identify(dest, identity)
 
 	return nil
 }
@@ -148,12 +148,12 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 
 	data, _ := json.Marshal(child)
 
-	request := NewRequest(parent.GetURLForChildrenIdentity(child.GetIdentity()))
-	request.Method = RequestMethodPost
+	request := newRequest(parent.GetURLForChildrenIdentity(child.GetIdentity()))
+	request.Method = requestMethodPost
 	request.Data = data
 
-	connection := NewConnection()
-	response, error := connection.Start(request)
+	connection := newConnection()
+	response, error := connection.start(request)
 
 	if error != nil {
 		Logger().Errorf("Error during CreateChild: %s", error.Error())
@@ -192,12 +192,12 @@ func AssignChildren(parent Exposable, children interface{}, identity Identity) *
 
 	data, _ := json.Marshal(&ids)
 
-	request := NewRequest(parent.GetURLForChildrenIdentity(identity))
-	request.Method = RequestMethodPut
+	request := newRequest(parent.GetURLForChildrenIdentity(identity))
+	request.Method = requestMethodPut
 	request.Data = data
 
-	connection := NewConnection()
-	_, error := connection.Start(request)
+	connection := newConnection()
+	_, error := connection.start(request)
 
 	if error != nil {
 		Logger().Errorf("Error during AssignChildren: %s", error.Error())

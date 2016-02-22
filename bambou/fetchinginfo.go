@@ -66,51 +66,51 @@ func (f *FetchingInfo) String() string {
 
 // Private.
 //
-// Fills the HTTP headers of the given Request according to the given FetchingInfo.
-func prepareHeaders(request *Request, info *FetchingInfo) {
+// Fills the HTTP headers of the given request according to the given FetchingInfo.
+func prepareHeaders(request *request, info *FetchingInfo) {
 
-	request.SetHeader("X-Nuage-PageSize", "50")
+	request.setHeader("X-Nuage-PageSize", "50")
 
 	if info == nil {
 		return
 	}
 
 	if info.Filter != "" {
-		request.SetHeader("X-Nuage-Filter", info.Filter)
+		request.setHeader("X-Nuage-Filter", info.Filter)
 	}
 
 	if info.OrderBy != "" {
-		request.SetHeader("X-Nuage-OrderBy", info.OrderBy)
+		request.setHeader("X-Nuage-OrderBy", info.OrderBy)
 	}
 
 	if info.Page != -1 {
-		request.SetHeader("X-Nuage-Page", strconv.Itoa(info.Page))
+		request.setHeader("X-Nuage-Page", strconv.Itoa(info.Page))
 	}
 
 	if info.PageSize > 0 {
-		request.SetHeader("X-Nuage-PageSize", strconv.Itoa(info.PageSize))
+		request.setHeader("X-Nuage-PageSize", strconv.Itoa(info.PageSize))
 	}
 
 	if len(info.GroupBy) > 0 {
-		request.SetHeader("X-Nuage-GroupBy", "true")
-		request.SetHeader("X-Nuage-Attributes", strings.Join(info.GroupBy, ", "))
+		request.setHeader("X-Nuage-GroupBy", "true")
+		request.setHeader("X-Nuage-Attributes", strings.Join(info.GroupBy, ", "))
 	}
 }
 
 // Private.
 //
-// Fills the given FetchingInfo according to the HTTP headers of the given Response.
-func readHeaders(response *Response, info *FetchingInfo) {
+// Fills the given FetchingInfo according to the HTTP headers of the given response.
+func readHeaders(response *response, info *FetchingInfo) {
 
 	if info == nil {
 		return
 	}
 
-	info.Filter = response.GetHeader("X-Nuage-Filter")
-	info.FilterType = response.GetHeader("X-Nuage-FilterType")
-	// info.GroupBy = response.GetHeader("X-Nuage-GroupBy")
-	info.OrderBy = response.GetHeader("X-Nuage-OrderBy")
-	info.Page, _ = strconv.Atoi(response.GetHeader("X-Nuage-Page"))
-	info.PageSize, _ = strconv.Atoi(response.GetHeader("X-Nuage-PageSize"))
-	info.TotalCount, _ = strconv.Atoi(response.GetHeader("X-Nuage-Count"))
+	info.Filter = response.getHeader("X-Nuage-Filter")
+	info.FilterType = response.getHeader("X-Nuage-FilterType")
+	// info.GroupBy = response.getHeader("X-Nuage-GroupBy")
+	info.OrderBy = response.getHeader("X-Nuage-OrderBy")
+	info.Page, _ = strconv.Atoi(response.getHeader("X-Nuage-Page"))
+	info.PageSize, _ = strconv.Atoi(response.getHeader("X-Nuage-PageSize"))
+	info.TotalCount, _ = strconv.Atoi(response.getHeader("X-Nuage-Count"))
 }

@@ -72,33 +72,33 @@ func TestFetchingInfo_prepareHeaders(t *testing.T) {
 
 	Convey("Given I create a FetchingInfo", t, func() {
 		f := NewFetchingInfo()
-		r := NewRequest("http://fake.com")
+		r := newRequest("http://fake.com")
 
 		Convey("When I prepareHeaders with a no fetching info", func() {
 			prepareHeaders(r, nil)
 
 			Convey("Then I should not have a value for X-Nuage-Page", func() {
-				So(r.GetHeader("X-Nuage-Page"), ShouldEqual, "")
+				So(r.getHeader("X-Nuage-Page"), ShouldEqual, "")
 			})
 
 			Convey("Then I should have a the X-Nuage-PageSize set to 50", func() {
-				So(r.GetHeader("X-Nuage-PageSize"), ShouldEqual, "50")
+				So(r.getHeader("X-Nuage-PageSize"), ShouldEqual, "50")
 			})
 
 			Convey("Then I should not have a value for X-Nuage-Filter", func() {
-				So(r.GetHeader("X-Nuage-Filter"), ShouldEqual, "")
+				So(r.getHeader("X-Nuage-Filter"), ShouldEqual, "")
 			})
 
 			Convey("Then I should not have a value for X-Nuage-OrderBy", func() {
-				So(r.GetHeader("X-Nuage-OrderBy"), ShouldEqual, "")
+				So(r.getHeader("X-Nuage-OrderBy"), ShouldEqual, "")
 			})
 
 			Convey("Then I should not have a value for X-Nuage-GroupBy", func() {
-				So(r.GetHeader("X-Nuage-GroupBy"), ShouldEqual, "")
+				So(r.getHeader("X-Nuage-GroupBy"), ShouldEqual, "")
 			})
 
 			Convey("Then I should not have a value for X-Nuage-Attributes", func() {
-				So(r.GetHeader("X-Nuage-Attributes"), ShouldEqual, "")
+				So(r.getHeader("X-Nuage-Attributes"), ShouldEqual, "")
 			})
 		})
 
@@ -112,27 +112,27 @@ func TestFetchingInfo_prepareHeaders(t *testing.T) {
 			prepareHeaders(r, f)
 
 			Convey("Then I should have a the X-Nuage-Page set to 2", func() {
-				So(r.GetHeader("X-Nuage-Page"), ShouldEqual, "2")
+				So(r.getHeader("X-Nuage-Page"), ShouldEqual, "2")
 			})
 
 			Convey("Then I should have a the X-Nuage-PageSize set to 42", func() {
-				So(r.GetHeader("X-Nuage-PageSize"), ShouldEqual, "42")
+				So(r.getHeader("X-Nuage-PageSize"), ShouldEqual, "42")
 			})
 
 			Convey("Then I should have a value for X-Nuage-Filter set to 'filter'", func() {
-				So(r.GetHeader("X-Nuage-Filter"), ShouldEqual, "filter")
+				So(r.getHeader("X-Nuage-Filter"), ShouldEqual, "filter")
 			})
 
 			Convey("Then I should have a value for X-Nuage-OrderBy set to 'orderby'", func() {
-				So(r.GetHeader("X-Nuage-OrderBy"), ShouldEqual, "orderby")
+				So(r.getHeader("X-Nuage-OrderBy"), ShouldEqual, "orderby")
 			})
 
 			Convey("Then I should have a value for X-Nuage-GroupBy set to true", func() {
-				So(r.GetHeader("X-Nuage-GroupBy"), ShouldEqual, "true")
+				So(r.getHeader("X-Nuage-GroupBy"), ShouldEqual, "true")
 			})
 
 			Convey("Then I should have a value for X-Nuage-Attributes contains group1 and group2", func() {
-				So(r.GetHeader("X-Nuage-Attributes"), ShouldEqual, "group1, group2")
+				So(r.getHeader("X-Nuage-Attributes"), ShouldEqual, "group1, group2")
 			})
 		})
 
@@ -143,14 +143,14 @@ func TestFetchingInfo_readHeaders(t *testing.T) {
 
 	Convey("Given I create a FetchingInfo", t, func() {
 		f := NewFetchingInfo()
-		r := NewResponse()
+		r := newResponse()
 
-		r.SetHeader("X-Nuage-Page", "3")
-		r.SetHeader("X-Nuage-PageSize", "42")
-		r.SetHeader("X-Nuage-Filter", "filter")
-		r.SetHeader("X-Nuage-FilterType", "text")
-		r.SetHeader("X-Nuage-OrderBy", "value")
-		r.SetHeader("X-Nuage-Count", "666")
+		r.setHeader("X-Nuage-Page", "3")
+		r.setHeader("X-Nuage-PageSize", "42")
+		r.setHeader("X-Nuage-Filter", "filter")
+		r.setHeader("X-Nuage-FilterType", "text")
+		r.setHeader("X-Nuage-OrderBy", "value")
+		r.setHeader("X-Nuage-Count", "666")
 
 		Convey("When I readHeaders with a no fetching info", func() {
 			readHeaders(r, nil)

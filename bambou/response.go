@@ -30,47 +30,47 @@
 package bambou
 
 const (
-	ResponseCodeZero                  = 0
-	ResponseCodeSuccess               = 200
-	ResponseCodeCreated               = 201
-	ResponseCodeEmpty                 = 204
-	ResponseCodeMultipleChoices       = 300
-	ResponseCodeBadRequest            = 400
-	ResponseCodeUnauthorized          = 401
-	ResponseCodePermissionDenied      = 403
-	ResponseCodeNotFound              = 404
-	ResponseCodeMethodNotAllowed      = 405
-	ResponseCodeConnectionTimeout     = 408
-	ResponseCodeConflict              = 409
-	ResponseCodePreconditionFailed    = 412
-	ResponseCodeAuthenticationExpired = 419
-	ResponseCodeInternalServerError   = 500
-	ResponseCodeServiceUnavailable    = 503
+	responseCodeZero                  = 0
+	responseCodeSuccess               = 200
+	responseCodeCreated               = 201
+	responseCodeEmpty                 = 204
+	responseCodeMultipleChoices       = 300
+	responseCodeBadrequest            = 400
+	responseCodeUnauthorized          = 401
+	responseCodePermissionDenied      = 403
+	responseCodeNotFound              = 404
+	responseCodeMethodNotAllowed      = 405
+	responseCodeConnectionTimeout     = 408
+	responseCodeConflict              = 409
+	responseCodePreconditionFailed    = 412
+	responseCodeAuthenticationExpired = 419
+	responseCodeInternalServerError   = 500
+	responseCodeServiceUnavailable    = 503
 )
 
-// Represents a Response.
-type Response struct {
+// Represents a response.
+type response struct {
 	Code    int
 	Data    []byte
 	Headers map[string]string
 }
 
-// Returns a new *Response.
-func NewResponse() *Response {
+// Returns a new *response.
+func newResponse() *response {
 
-	return &Response{
+	return &response{
 		Headers: make(map[string]string),
 	}
 }
 
 // Sets the value of Header field.
-func (r *Response) SetHeader(name, value string) {
+func (r *response) setHeader(name, value string) {
 
 	r.Headers[name] = value
 }
 
 // Returns the value of Header field.
-func (r *Response) GetHeader(name string) string {
+func (r *response) getHeader(name string) string {
 
 	return r.Headers[name]
 }

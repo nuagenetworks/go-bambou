@@ -39,7 +39,7 @@ import (
 func TestConnection_NewError(t *testing.T) {
 
 	Convey("Given I create a new Connection", t, func() {
-		c := NewConnection()
+		c := newConnection()
 
 		Convey("Then Timeout should 60s", func() {
 			So(c.Timeout, ShouldEqual, time.Duration(60)*time.Second)
@@ -58,19 +58,19 @@ func TestConnection_Start(t *testing.T) {
 	}()
 
 	Convey("Given I create a new Connection", t, func() {
-		c := NewConnection()
+		c := newConnection()
 
-		Convey("When I start a connection with the request that returns ResponseCodeSuccess", func() {
+		Convey("When I start a connection with the request that returns responseCodeSuccess", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeSuccess,
+					Code:    responseCodeSuccess,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should not be nil", func() {
 				So(resp, ShouldNotBeNil)
@@ -81,17 +81,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeCreated", func() {
+		Convey("When I start a connection with the request that returns responseCodeCreated", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeCreated,
+					Code:    responseCodeCreated,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should not be nil", func() {
 				So(resp, ShouldNotBeNil)
@@ -102,17 +102,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeEmpty", func() {
+		Convey("When I start a connection with the request that returns responseCodeEmpty", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeEmpty,
+					Code:    responseCodeEmpty,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should not be nil", func() {
 				So(resp, ShouldNotBeNil)
@@ -123,26 +123,26 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeMultipleChoices", func() {
+		Convey("When I start a connection with the request that returns responseCodeMultipleChoices", func() {
 
 			reqCount := 0
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
+			defer patch(&sendNativerequest, func(request *request) *response {
 				reqCount++
 
 				if reqCount == 1 {
-					return &Response{
+					return &response{
 						Headers: make(map[string]string),
-						Code:    ResponseCodeMultipleChoices,
+						Code:    responseCodeMultipleChoices,
 					}
 				}
-				return &Response{
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeSuccess,
+					Code:    responseCodeSuccess,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should not be nil", func() {
 				So(resp, ShouldNotBeNil)
@@ -157,26 +157,26 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeAuthenticationExpired", func() {
+		Convey("When I start a connection with the request that returns responseCodeAuthenticationExpired", func() {
 
 			reqCount := 0
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
+			defer patch(&sendNativerequest, func(request *request) *response {
 				reqCount++
 
 				if reqCount == 1 {
-					return &Response{
+					return &response{
 						Headers: make(map[string]string),
-						Code:    ResponseCodeAuthenticationExpired,
+						Code:    responseCodeAuthenticationExpired,
 					}
 				}
-				return &Response{
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeSuccess,
+					Code:    responseCodeSuccess,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should not be nil", func() {
 				So(resp, ShouldNotBeNil)
@@ -187,20 +187,20 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeConflict", func() {
+		Convey("When I start a connection with the request that returns responseCodeConflict", func() {
 
 			d := "{\"property\": \"prop\", \"type\": \"iznogood\", \"descriptions\": [{\"title\": \"oula\", \"description\": \"pas bon\"}]}"
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeConflict,
+					Code:    responseCodeConflict,
 					Data:    []byte(d),
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be nil", func() {
 				So(resp, ShouldBeNil)
@@ -215,17 +215,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeBadRequest", func() {
+		Convey("When I start a connection with the request that returns responseCodeBadrequest", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeBadRequest,
+					Code:    responseCodeBadrequest,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -235,8 +235,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeBadRequest", func() {
-				So(err.Code, ShouldEqual, ResponseCodeBadRequest)
+			Convey("Then error Code should be responseCodeBadrequest", func() {
+				So(err.Code, ShouldEqual, responseCodeBadrequest)
 			})
 
 			Convey("Then error Message should be 'Bad request.'", func() {
@@ -244,17 +244,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeUnauthorized", func() {
+		Convey("When I start a connection with the request that returns responseCodeUnauthorized", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeUnauthorized,
+					Code:    responseCodeUnauthorized,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -264,8 +264,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeUnauthorized", func() {
-				So(err.Code, ShouldEqual, ResponseCodeUnauthorized)
+			Convey("Then error Code should be responseCodeUnauthorized", func() {
+				So(err.Code, ShouldEqual, responseCodeUnauthorized)
 			})
 
 			Convey("Then error Message should be 'Unauthorized.'", func() {
@@ -273,17 +273,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodePermissionDenied", func() {
+		Convey("When I start a connection with the request that returns responseCodePermissionDenied", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodePermissionDenied,
+					Code:    responseCodePermissionDenied,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -293,8 +293,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodePermissionDenied", func() {
-				So(err.Code, ShouldEqual, ResponseCodePermissionDenied)
+			Convey("Then error Code should be responseCodePermissionDenied", func() {
+				So(err.Code, ShouldEqual, responseCodePermissionDenied)
 			})
 
 			Convey("Then error Message should be 'Permission denied.'", func() {
@@ -302,17 +302,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeMethodNotAllowed", func() {
+		Convey("When I start a connection with the request that returns responseCodeMethodNotAllowed", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeMethodNotAllowed,
+					Code:    responseCodeMethodNotAllowed,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -322,8 +322,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeMethodNotAllowed", func() {
-				So(err.Code, ShouldEqual, ResponseCodeMethodNotAllowed)
+			Convey("Then error Code should be responseCodeMethodNotAllowed", func() {
+				So(err.Code, ShouldEqual, responseCodeMethodNotAllowed)
 			})
 
 			Convey("Then error Message should be 'Not allowed.'", func() {
@@ -331,17 +331,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeNotFound", func() {
+		Convey("When I start a connection with the request that returns responseCodeNotFound", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeNotFound,
+					Code:    responseCodeNotFound,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -351,8 +351,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeNotFound", func() {
-				So(err.Code, ShouldEqual, ResponseCodeNotFound)
+			Convey("Then error Code should be responseCodeNotFound", func() {
+				So(err.Code, ShouldEqual, responseCodeNotFound)
 			})
 
 			Convey("Then error Message should be 'Not found.'", func() {
@@ -360,17 +360,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeConnectionTimeout", func() {
+		Convey("When I start a connection with the request that returns responseCodeConnectionTimeout", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeConnectionTimeout,
+					Code:    responseCodeConnectionTimeout,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -380,8 +380,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeConnectionTimeout", func() {
-				So(err.Code, ShouldEqual, ResponseCodeConnectionTimeout)
+			Convey("Then error Code should be responseCodeConnectionTimeout", func() {
+				So(err.Code, ShouldEqual, responseCodeConnectionTimeout)
 			})
 
 			Convey("Then error Message should be 'Timeout.'", func() {
@@ -389,17 +389,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodePreconditionFailed", func() {
+		Convey("When I start a connection with the request that returns responseCodePreconditionFailed", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodePreconditionFailed,
+					Code:    responseCodePreconditionFailed,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -409,8 +409,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodePreconditionFailed", func() {
-				So(err.Code, ShouldEqual, ResponseCodePreconditionFailed)
+			Convey("Then error Code should be responseCodePreconditionFailed", func() {
+				So(err.Code, ShouldEqual, responseCodePreconditionFailed)
 			})
 
 			Convey("Then error Message should be 'Precondition failed.'", func() {
@@ -418,17 +418,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeInternalServerError", func() {
+		Convey("When I start a connection with the request that returns responseCodeInternalServerError", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeInternalServerError,
+					Code:    responseCodeInternalServerError,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -438,8 +438,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeInternalServerError", func() {
-				So(err.Code, ShouldEqual, ResponseCodeInternalServerError)
+			Convey("Then error Code should be responseCodeInternalServerError", func() {
+				So(err.Code, ShouldEqual, responseCodeInternalServerError)
 			})
 
 			Convey("Then error Message should be 'Internal server error.'", func() {
@@ -447,17 +447,17 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
-		Convey("When I start a connection with the request that returns ResponseCodeServiceUnavailable", func() {
+		Convey("When I start a connection with the request that returns responseCodeServiceUnavailable", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
-					Code:    ResponseCodeServiceUnavailable,
+					Code:    responseCodeServiceUnavailable,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -467,8 +467,8 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeServiceUnavailable", func() {
-				So(err.Code, ShouldEqual, ResponseCodeServiceUnavailable)
+			Convey("Then error Code should be responseCodeServiceUnavailable", func() {
+				So(err.Code, ShouldEqual, responseCodeServiceUnavailable)
 			})
 
 			Convey("Then error Message should be 'Service unavailable.'", func() {
@@ -478,15 +478,15 @@ func TestConnection_Start(t *testing.T) {
 
 		Convey("When I start a connection with the request that returns an unknown code", func() {
 
-			defer patch(&sendNativeRequest, func(request *Request) *Response {
-				return &Response{
+			defer patch(&sendNativerequest, func(request *request) *response {
+				return &response{
 					Headers: make(map[string]string),
 					Code:    666,
 				}
 			}).restore()
 
-			req := NewRequest("http://fake.com/hello")
-			resp, err := c.Start(req)
+			req := newRequest("http://fake.com/hello")
+			resp, err := c.start(req)
 
 			Convey("Then response should be bil", func() {
 				So(resp, ShouldBeNil)
@@ -496,7 +496,7 @@ func TestConnection_Start(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then error Code should be ResponseCodeServiceUnavailable", func() {
+			Convey("Then error Code should be responseCodeServiceUnavailable", func() {
 				So(err.Code, ShouldEqual, 666)
 			})
 
@@ -508,12 +508,12 @@ func TestConnection_Start(t *testing.T) {
 	})
 }
 
-func TestConnection_sendNativeRequest(t *testing.T) {
+func TestConnection_sendNativerequest(t *testing.T) {
 
 	Convey("Given I create a sucessful request to github", t, func() {
 
-		req := NewRequest("http://jsonplaceholder.typicode.com/post/1")
-		resp := sendNativeRequest(req)
+		req := newRequest("http://jsonplaceholder.typicode.com/post/1")
+		resp := sendNativerequest(req)
 
 		Convey("Then I should get a response with code 404", func() {
 			So(resp.Code, ShouldEqual, 404)
@@ -522,10 +522,10 @@ func TestConnection_sendNativeRequest(t *testing.T) {
 
 	Convey("Given I create a bad request", t, func() {
 
-		req := NewRequest("https:///nope/nope/nope")
+		req := newRequest("https:///nope/nope/nope")
 
 		Convey("Then I it should panic", func() {
-			So(func() { sendNativeRequest(req) }, ShouldPanic)
+			So(func() { sendNativerequest(req) }, ShouldPanic)
 		})
 	})
 }

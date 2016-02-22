@@ -35,17 +35,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestRequest_NewRequest(t *testing.T) {
+func Testrequest_newRequest(t *testing.T) {
 
-	Convey("Given I create a new Request", t, func() {
-		r := NewRequest("https://fake.com")
+	Convey("Given I create a new request", t, func() {
+		r := newRequest("https://fake.com")
 
 		Convey("Then URL should https://fake.com", func() {
 			So(r.URL, ShouldEqual, "https://fake.com")
 		})
 
 		Convey("Then Method should GET", func() {
-			So(r.Method, ShouldEqual, RequestMethodGet)
+			So(r.Method, ShouldEqual, requestMethodGet)
 		})
 
 		Convey("Then Headers should not be nil", func() {
@@ -58,45 +58,45 @@ func TestRequest_NewRequest(t *testing.T) {
 	})
 }
 
-func TestRequest_SetGetHeader(t *testing.T) {
-
-	Convey("Given I create a new Request", t, func() {
-		r := NewRequest("https://fake.com")
-
-		Convey("When I set the header 'header' to 'value'", func() {
-			r.SetHeader("header", "value")
-
-			Convey("Then value of header should be value", func() {
-				So(r.GetHeader("header"), ShouldEqual, "value")
-			})
-		})
-	})
-}
-
-func TestRequest_SetGetParameter(t *testing.T) {
+func Testrequest_SetgetHeader(t *testing.T) {
 
 	Convey("Given I create a new request", t, func() {
-		r := NewRequest("https://fake.com")
+		r := newRequest("https://fake.com")
 
-		Convey("When I set the parameter 'param' to 'value'", func() {
-			r.SetParameter("param", "value")
+		Convey("When I set the header 'header' to 'value'", func() {
+			r.setHeader("header", "value")
 
-			Convey("Then the value of parameter 'param' should 'value", func() {
-				So(r.GetParameter("param"), ShouldEqual, "value")
+			Convey("Then value of header should be value", func() {
+				So(r.getHeader("header"), ShouldEqual, "value")
 			})
 		})
 	})
 }
 
-func TestReques_ToNative(t *testing.T) {
+func Testrequest_SetgetParameter(t *testing.T) {
+
+	Convey("Given I create a new request", t, func() {
+		r := newRequest("https://fake.com")
+
+		Convey("When I set the parameter 'param' to 'value'", func() {
+			r.setParameter("param", "value")
+
+			Convey("Then the value of parameter 'param' should 'value", func() {
+				So(r.getParameter("param"), ShouldEqual, "value")
+			})
+		})
+	})
+}
+
+func TestReques_toNative(t *testing.T) {
 
 	Convey("Given I create new request with default values", t, func() {
-		r := NewRequest("https://fake.com")
-		r.SetHeader("header", "value")
+		r := newRequest("https://fake.com")
+		r.setHeader("header", "value")
 		r.Data = []byte("hello")
 
 		Convey("When I convert the request to the native request", func() {
-			n := r.ToNative()
+			n := r.toNative()
 
 			Convey("Then URL should https://fake.com", func() {
 				So(n.URL.String(), ShouldEqual, "https://fake.com")

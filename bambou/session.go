@@ -68,7 +68,7 @@ var CurrentSession = func() *Session {
 }
 
 // Returns the computed Authorization HTTP header.
-func (s *Session) MakeAuthorizationHeaders() string {
+func (s *Session) makeAuthorizationHeaders() string {
 
 	if s.Username == "" {
 		panic("Error while creating headers: User must be set")
