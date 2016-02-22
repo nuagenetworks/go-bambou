@@ -39,7 +39,7 @@ func TestSession_NewSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
+		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
 		Convey("Then the properties Username should be 'username'", func() {
@@ -68,14 +68,44 @@ func TestSession_MakeAuthorizationHeaders(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
-		s := NewSession("username", "password", "organization", "http://url.com", r)
+		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
 
-		Convey("When I prepare the Header", func() {
+		Convey("When I prepare the Headers with a session that doesn't have an APIKey", func() {
+
+			s := NewSession("username", "password", "organization", "http://url.com", r)
 			h := s.MakeAuthorizationHeaders()
 
 			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ", func() {
 				So(h, ShouldEqual, "XREST dXNlcm5hbWU6cGFzc3dvcmQ=")
+			})
+		})
+
+		Convey("When I prepare the Headers with a session that already has an APIKey", func() {
+
+			s := NewSession("username", "password", "organization", "http://url.com", r)
+			s.APIKey = "api-key"
+			h := s.MakeAuthorizationHeaders()
+
+			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ", func() {
+				So(h, ShouldEqual, "XREST dXNlcm5hbWU6YXBpLWtleQ==")
+			})
+		})
+
+		Convey("When I prepare the Headers with a session missing username", func() {
+
+			s := NewSession("", "password", "organization", "http://url.com", r)
+
+			Convey("It should panic", func() {
+				So(func() { s.MakeAuthorizationHeaders() }, ShouldPanic)
+			})
+		})
+
+		Convey("When I prepare the Headers with a session missing password", func() {
+
+			s := NewSession("username", "", "organization", "http://url.com", r)
+
+			Convey("It should panic", func() {
+				So(func() { s.MakeAuthorizationHeaders() }, ShouldPanic)
 			})
 		})
 	})
@@ -85,7 +115,7 @@ func TestSession_StartStopSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &TestRoot{ExposedObject: ExposedObject{Identity: TestRooIdentity}}
+		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
 		Convey("Then the CurrentSession() should be nil", func() {
@@ -107,7 +137,16 @@ func TestSession_StartStopSession(t *testing.T) {
 			Convey("Then the Root User APIKey should be 'api-key'", func() {
 				So(c.Root.GetAPIKey(), ShouldEqual, "api-key")
 			})
+		})
 
+		Convey("When I start the session and cannot get the root object", func() {
+
+			s.Root = &testFailedRoot{}
+			err := s.Start()
+
+			Convey("The err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
 		})
 
 		Convey("When I reset the session and retrieve the CurrentSession", func() {
@@ -122,12 +161,12 @@ func TestSession_StartStopSession(t *testing.T) {
 
 }
 
-var TestRooIdentity = Identity{
+var testRootdentity = Identity{
 	RESTName:     "root",
 	ResourceName: "root",
 }
 
-type TestRoot struct {
+type testRoot struct {
 	ExposedObject
 
 	UserName     string `json:"userName,omitempty"`
@@ -136,14 +175,21 @@ type TestRoot struct {
 	Organization string `json:"enterprise,omitempty"`
 }
 
-func (o *TestRoot) GetAPIKey() string                           { return o.APIKey }
-func (o *TestRoot) SetAPIKey(key string)                        { o.APIKey = key }
-func (o *TestRoot) GetURL() string                              { return CurrentSession().URL + "/" + o.Identity.ResourceName }
-func (o *TestRoot) Save() *Error                                { return nil }
-func (o *TestRoot) Delete() *Error                              { return nil }
-func (o *TestRoot) GetURLForChildrenIdentity(i Identity) string { return "" }
+func (o *testRoot) GetAPIKey() string                           { return o.APIKey }
+func (o *testRoot) SetAPIKey(key string)                        { o.APIKey = key }
+func (o *testRoot) GetGeneralURL() string                       { return CurrentSession().URL + "/" + o.Identity.ResourceName }
+func (o *testRoot) GetPersonalURL() string                      { return o.GetPersonalURL() }
+func (o *testRoot) Save() *Error                                { return nil }
+func (o *testRoot) Delete() *Error                              { return nil }
+func (o *testRoot) GetURLForChildrenIdentity(i Identity) string { return "" }
 
-func (o *TestRoot) Fetch() *Error {
+func (o *testRoot) Fetch() *Error {
 	o.APIKey = "api-key"
 	return nil
 }
+
+type testFailedRoot struct {
+	testRoot
+}
+
+func (o *testFailedRoot) Fetch() *Error { return NewError(500, "Error") }

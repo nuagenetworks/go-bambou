@@ -54,22 +54,46 @@ func TestExposedObject_URL(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity}}
+		e := &fakeExposed{ExposedObject: ExposedObject{}}
 
-		Convey("When I don't set the ID", func() {
-			Convey("Then URL should be http://fake.com/fakes", func() {
-				So(e.GetURL(), ShouldEqual, "http://fake.com/fakes")
+		Convey("When I set the ID and the Identity", func() {
+
+			e.Identity = fakeIdentity
+			e.ID = "xxx"
+
+			Convey("Then general URL should be http://fake.com/fakes", func() {
+				So(e.GetGeneralURL(), ShouldEqual, "http://fake.com/fakes")
+			})
+
+			Convey("Then personal URL should be http://fake.com/fakes/xxx", func() {
+				So(e.GetPersonalURL(), ShouldEqual, "http://fake.com/fakes/xxx")
 			})
 		})
 
-		Convey("When I set the ID", func() {
+		Convey("When I don't set the Identity", func() {
 
 			e.ID = "xxx"
 
-			Convey("Then URL should be http://fake.com/fakes/xxx", func() {
-				So(e.GetURL(), ShouldEqual, "http://fake.com/fakes/xxx")
+			Convey("Then getting general URL should panic", func() {
+				So(func() { e.GetPersonalURL() }, ShouldPanic)
 			})
 
+			Convey("Then general personal URL should panic", func() {
+				So(func() { e.GetPersonalURL() }, ShouldPanic)
+			})
+		})
+
+		Convey("When I don't set the ID", func() {
+
+			e.Identity = fakeIdentity
+
+			Convey("Then getting general URL should panic", func() {
+				So(func() { e.GetPersonalURL() }, ShouldPanic)
+			})
+
+			Convey("Then general personal URL should panic", func() {
+				So(func() { e.GetPersonalURL() }, ShouldPanic)
+			})
 		})
 	})
 }
@@ -112,6 +136,8 @@ func TestExposedObject_String(t *testing.T) {
 }
 
 var fakeIdentity = Identity{"fake", "fakes"}
+
+type fakeExposedList []*fakeExposed
 
 type fakeExposed struct {
 	ExposedObject

@@ -94,10 +94,6 @@ func (s *Session) MakeAuthorizationHeaders() string {
 // At that point the authentication will be done.
 func (s *Session) Start() *Error {
 
-	if currentSession != nil {
-		return nil
-	}
-
 	currentSession = s
 
 	err := s.Root.Fetch()
@@ -114,10 +110,6 @@ func (s *Session) Start() *Error {
 
 // Resets the session.
 func (s *Session) Reset() {
-
-	if currentSession == nil {
-		return
-	}
 
 	s.APIKey = ""
 	s.Root.SetAPIKey("")

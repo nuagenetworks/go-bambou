@@ -90,11 +90,7 @@ func (r *Request) GetParameter(name string) string {
 // Returns a native http.Request.
 func (r *Request) ToNative() *http.Request {
 
-	req, err := http.NewRequest(r.Method, r.URL, bytes.NewBuffer(r.Data))
-
-	if err != nil {
-		panic("Error while creating native http request: " + err.Error())
-	}
+	req, _ := http.NewRequest(r.Method, r.URL, bytes.NewBuffer(r.Data))
 
 	for k, v := range r.Headers {
 		req.Header.Set(k, v)

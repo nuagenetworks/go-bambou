@@ -40,12 +40,15 @@ type Operationable interface {
 	Fetch() *Error
 	Save() *Error
 	Delete() *Error
+	GetPersonalURL() string
+	GetGeneralURL() string
+	GetURLForChildrenIdentity(Identity) string
 }
 
 // Fetchs the given Exposable from the server.
-func FetchEntity(object Exposable) *Error {
+func FetchEntity(object Operationable) *Error {
 
-	request := NewRequest(object.GetURL())
+	request := NewRequest(object.GetPersonalURL())
 	connection := NewConnection()
 	response, error := connection.Start(request)
 
@@ -66,22 +69,24 @@ func FetchEntity(object Exposable) *Error {
 // Saves the given Exposable into the server.
 func SaveEntity(object Exposable) *Error {
 
-	data, err := json.Marshal(object)
+	data, _ := json.Marshal(object)
 
-	if err != nil {
-		panic("Unable to marshal json: " + err.Error())
-	}
-
-	request := NewRequest(object.GetURL())
+	request := NewRequest(object.GetPersonalURL())
 	request.Method = RequestMethodPut
 	request.Data = data
 
 	connection := NewConnection()
-	_, error := connection.Start(request)
+	response, err1 := connection.Start(request)
 
-	if error != nil {
-		Logger().Errorf("Error during SaveEntity: %s", error.Error())
-		return error
+	if err1 != nil {
+		Logger().Errorf("Error during SaveEntity: %s", err1.Error())
+		return err1
+	}
+
+	err2 := json.Unmarshal(response.Data[1:len(response.Data)-1], &object)
+
+	if err2 != io.EOF && err2 != nil {
+		panic("Unable to unmarshal json: " + err2.Error())
 	}
 
 	return nil
@@ -90,7 +95,7 @@ func SaveEntity(object Exposable) *Error {
 // Deletes the given Exposable from the server.
 func DeleteEntity(object Exposable) *Error {
 
-	request := NewRequest(object.GetURL())
+	request := NewRequest(object.GetPersonalURL())
 	request.Method = RequestMethodDelete
 
 	connection := NewConnection()
@@ -141,11 +146,7 @@ func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *
 // In case of error, an *Error is returned, otherwise nil.
 func CreateChild(parent Exposable, child Exposable) *Error {
 
-	data, err := json.Marshal(child)
-
-	if err != nil {
-		panic("Unable to marshal json: " + err.Error())
-	}
+	data, _ := json.Marshal(child)
 
 	request := NewRequest(parent.GetURLForChildrenIdentity(child.GetIdentity()))
 	request.Method = RequestMethodPost
@@ -159,7 +160,7 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 		return error
 	}
 
-	err = json.Unmarshal(response.Data[1:len(response.Data)-1], child)
+	err := json.Unmarshal(response.Data[1:len(response.Data)-1], child)
 
 	if err != io.EOF && err != nil {
 		panic("Unable to unmarshal json: " + err.Error())
@@ -189,11 +190,7 @@ func AssignChildren(parent Exposable, children interface{}, identity Identity) *
 		}
 	}
 
-	data, err := json.Marshal(&ids)
-
-	if err != nil {
-		panic("Unable to marshal json: " + err.Error())
-	}
+	data, _ := json.Marshal(&ids)
 
 	request := NewRequest(parent.GetURLForChildrenIdentity(identity))
 	request.Method = RequestMethodPut

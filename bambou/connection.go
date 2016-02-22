@@ -76,13 +76,7 @@ var sendNativeRequest = func(request *Request) *Response {
 		response.SetHeader(h, strings.Join(v, ", "))
 	}
 
-	data, err := ioutil.ReadAll(nativeResponse.Body)
-
-	if err != nil {
-		panic("Error while decoding the body data: " + err.Error())
-	}
-
-	response.Data = data
+	response.Data, _ = ioutil.ReadAll(nativeResponse.Body)
 
 	return response
 }

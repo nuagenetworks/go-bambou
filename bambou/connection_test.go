@@ -50,8 +50,12 @@ func TestConnection_NewError(t *testing.T) {
 func TestConnection_Start(t *testing.T) {
 
 	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "url", nil)
+		return NewSession("username", "password", "organization", "url", &testRoot{})
 	}).restore()
+
+	defer func() {
+		CurrentSession().Reset()
+	}()
 
 	Convey("Given I create a new Connection", t, func() {
 		c := NewConnection()
@@ -150,6 +154,36 @@ func TestConnection_Start(t *testing.T) {
 
 			Convey("Then the request URL should be http://fake.com/hello?responseChoice=1", func() {
 				So(req.URL, ShouldEqual, "http://fake.com/hello?responseChoice=1")
+			})
+		})
+
+		Convey("When I start a connection with the request that returns ResponseCodeAuthenticationExpired", func() {
+
+			reqCount := 0
+			defer patch(&sendNativeRequest, func(request *Request) *Response {
+				reqCount++
+
+				if reqCount == 1 {
+					return &Response{
+						Headers: make(map[string]string),
+						Code:    ResponseCodeAuthenticationExpired,
+					}
+				}
+				return &Response{
+					Headers: make(map[string]string),
+					Code:    ResponseCodeSuccess,
+				}
+			}).restore()
+
+			req := NewRequest("http://fake.com/hello")
+			resp, err := c.Start(req)
+
+			Convey("Then response should not be nil", func() {
+				So(resp, ShouldNotBeNil)
+			})
+
+			Convey("Then error should be nil", func() {
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -471,5 +505,27 @@ func TestConnection_Start(t *testing.T) {
 			})
 		})
 
+	})
+}
+
+func TestConnection_sendNativeRequest(t *testing.T) {
+
+	Convey("Given I create a sucessful request to github", t, func() {
+
+		req := NewRequest("https://api.github.com")
+		resp := sendNativeRequest(req)
+
+		Convey("Then I should get a response with code 200", func() {
+			So(resp.Code, ShouldEqual, 200)
+		})
+	})
+
+	Convey("Given I create a bad request", t, func() {
+
+		req := NewRequest("https:///nope/nope/nope")
+
+		Convey("Then I it should panic", func() {
+			So(func() { sendNativeRequest(req) }, ShouldPanic)
+		})
 	})
 }

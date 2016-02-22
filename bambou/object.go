@@ -42,9 +42,6 @@ type ExposablesList []Exposable
 type Exposable interface {
 	Identifiable
 	Operationable
-
-	GetURL() string
-	GetURLForChildrenIdentity(Identity) string
 }
 
 // Represents a list of Rootables
@@ -82,16 +79,22 @@ func (o *ExposedObject) GetIdentity() Identity {
 }
 
 // Returns the URL that holds the information about the object.
-func (o *ExposedObject) GetURL() string {
+func (o *ExposedObject) GetGeneralURL() string {
 
-	session := CurrentSession()
-	baseURL := session.URL
-
-	if o.ID != "" {
-		return baseURL + "/" + o.Identity.ResourceName + "/" + o.ID
+	if o.Identity.ResourceName == "" {
+		panic("Cannot GetGeneralURL of that as no ResourceName in its Identity")
 	}
 
-	return baseURL + "/" + o.Identity.ResourceName
+	return CurrentSession().URL + "/" + o.Identity.ResourceName
+}
+
+func (o *ExposedObject) GetPersonalURL() string {
+
+	if o.ID == "" {
+		panic("Cannot GetPersonalURL of an object with no ID set")
+	}
+
+	return o.GetGeneralURL() + "/" + o.ID
 }
 
 // Returns the URL of children with the given identity
@@ -100,7 +103,7 @@ func (o *ExposedObject) GetURL() string {
 // the children.
 func (o *ExposedObject) GetURLForChildrenIdentity(identity Identity) string {
 
-	return o.GetURL() + "/" + identity.ResourceName
+	return o.GetPersonalURL() + "/" + identity.ResourceName
 }
 
 // Returns the string representation of the object
