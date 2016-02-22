@@ -44,16 +44,19 @@ type EventHandlers map[string]EventHandler
 type PushCenter struct {
 	IsRunning bool
 	Channel   chan *Notification
-	URL       string
 
 	handlers      EventHandlers
 	defaultHander EventHandler
+	lastEventID   string
+	stop          chan bool
 }
 
 // Creates a new Push Center
 func NewPushCenter() *PushCenter {
 
 	return &PushCenter{
+		Channel:  make(chan *Notification),
+		stop:     make(chan bool),
 		handlers: EventHandlers{},
 	}
 }
@@ -96,17 +99,15 @@ func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 func (p *PushCenter) Start() {
 
 	p.IsRunning = true
-	p.URL = CurrentSession().URL + "/events"
-	p.Channel = make(chan *Notification)
+	p.lastEventID = ""
 
 	go func() {
-		go p.listen()
 		for {
+			go p.listen()
+
 			select {
-			case notification, ok := <-p.Channel:
-				if !ok {
-					return
-				}
+			case notification := <-p.Channel:
+
 				for _, event := range notification.Events {
 
 					event.Data, _ = json.Marshal(event.DataMap[0])
@@ -118,6 +119,8 @@ func (p *PushCenter) Start() {
 						handler(event)
 					}
 				}
+			case <-p.stop:
+				return
 			}
 		}
 	}()
@@ -127,8 +130,8 @@ func (p *PushCenter) Start() {
 func (p *PushCenter) Stop() {
 
 	p.IsRunning = false
-	p.URL = ""
-	close(p.Channel)
+	p.lastEventID = ""
+	p.stop <- true
 }
 
 // Private.
@@ -136,36 +139,37 @@ func (p *PushCenter) Stop() {
 // Will handle the creation of new *Notification
 func (p *PushCenter) listen() {
 
-	lastEventID := ""
+	currentURL := CurrentSession().URL + "/events"
 
-	for {
-		currentURL := p.URL
+	if p.lastEventID != "" {
+		currentURL += "?uuid=" + p.lastEventID
+	}
 
-		if lastEventID != "" {
-			currentURL += "?uuid=" + lastEventID
-		}
+	request := NewRequest(currentURL)
+	connection := NewConnection()
+	response, error := connection.Start(request)
 
-		request := NewRequest(currentURL)
-		connection := NewConnection()
-		response, error := connection.Start(request)
+	// if the push center not running anymore, return
+	if !p.IsRunning {
+		return
+	}
 
-		if error != nil {
-			Logger().Errorf("Error during push: %s", error.Error())
-			continue
-		}
+	if error != nil {
+		Logger().Errorf("Error during push: %s", error.Error())
+		return
+	}
 
-		notification := NewNotification()
-		err := json.Unmarshal(response.Data, &notification)
+	notification := NewNotification()
+	err := json.Unmarshal(response.Data, &notification)
 
-		if err != io.EOF && err != nil {
-			Logger().Errorf("Error during push: %s", err.Error())
-			continue
-		}
+	if err != io.EOF && err != nil {
+		Logger().Errorf("Error during push: %s", err.Error())
+		return
+	}
 
-		lastEventID = notification.UUID
+	p.lastEventID = notification.UUID
 
-		if len(notification.Events) > 0 {
-			p.Channel <- notification
-		}
+	if len(notification.Events) > 0 {
+		p.Channel <- notification
 	}
 }
