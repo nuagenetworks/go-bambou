@@ -29,68 +29,12 @@
 
 package bambou
 
-import (
-	"fmt"
-	"reflect"
-)
+// . "github.com/smartystreets/goconvey/convey"
 
-// Identity representing all possible identities.
-var AllIdentity = Identity{
-	RESTName:     "__all__",
-	ResourceName: "__all__",
-}
-
-// List of Identifiables.
-type IdentifiablesList []Identifiable
-
-// Interface of an Identifiable.
-type Identifiable interface {
-	GetIdentity() Identity
-}
-
-// Identity is a structure that contains the basic
-// information of all Identifiable. The RESTName is
-// usually the singular form of the resourceName Field.
+// func TestOperations_prepareHeader(t *testing.T) {
 //
-// For instance, "enterprise" and "enterprises".
-type Identity struct {
-	RESTName     string
-	ResourceName string
-}
-
-// Returns a new *Identity
-func NewIdentity(RESTName, resourceName string) *Identity {
-
-	return &Identity{
-		RESTName:     RESTName,
-		ResourceName: resourceName,
-	}
-}
-
-// String representation of the object.
-func (i Identity) String() string {
-
-	return fmt.Sprintf("<%s|%s>", i.RESTName, i.ResourceName)
-}
-
-// Apply the given Identity to a list of Exposables.
+//     Convey("Given I create a request and a fetching", t, func() {
 //
-// This function applies the given BBIdentity to the given
-// list. The type of the list parameters must be a slice of
-// pointer to struct that implement the Exposable interface.
-func Identify(list interface{}, identity Identity) {
-
-	l := reflect.ValueOf(list).Elem().Len()
-
-	for i := 0; i < l; i++ {
-
-		o := reflect.ValueOf(list).Elem().Index(i).Elem()
-
-		identityField := o.FieldByName("Identity")
-		RESTNameField := identityField.FieldByName("RESTName")
-		resourceNameField := identityField.FieldByName("ResourceName")
-
-		RESTNameField.SetString(identity.RESTName)
-		resourceNameField.SetString(identity.ResourceName)
-	}
-}
+//         r := NewRequest()
+//     })
+// }

@@ -81,12 +81,6 @@ func (o *ExposedObject) GetIdentity() Identity {
 	return o.Identity
 }
 
-// Sets the Identity
-func (o *ExposedObject) SetIdentity(identity Identity) {
-
-	o.Identity = identity
-}
-
 // Returns the URL that holds the information about the object.
 func (o *ExposedObject) GetURL() string {
 

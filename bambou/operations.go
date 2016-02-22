@@ -31,11 +31,8 @@ package bambou
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"reflect"
-	"strconv"
-	"strings"
 )
 
 // Interface for Operationables objects.
@@ -43,86 +40,6 @@ type Operationable interface {
 	Fetch() *Error
 	Save() *Error
 	Delete() *Error
-}
-
-// Children fecthing information.
-//
-// This structure will be used to pass and get back information
-// during the fetching of some children.
-type FetchingInfo struct {
-	Filter     string
-	FilterType string
-	GroupBy    []string
-	OrderBy    string
-	Page       int
-	PageSize   int
-	TotalCount int
-}
-
-// Returns a new *FetchingInfo
-func NewFetchingInfo() *FetchingInfo {
-
-	return &FetchingInfo{
-		Page:     -1,
-		PageSize: -1,
-	}
-}
-
-// String representation of the FetchingInfo.
-func (f *FetchingInfo) String() string {
-
-	return fmt.Sprintf("{FetchingInfo: page: %d, pagesize: %d, totalcount: %d}", f.Page, f.PageSize, f.TotalCount)
-}
-
-// Private.
-//
-// Fills the HTTP headers of the given Request according to the given FetchingInfo.
-func prepareHeaders(request *Request, info *FetchingInfo) {
-
-	request.SetHeader("X-Nuage-PageSize", "50")
-
-	if info == nil {
-		return
-	}
-
-	if info.Filter != "" {
-		request.SetHeader("X-Nuage-Filter", info.Filter)
-	}
-
-	if info.OrderBy != "" {
-		request.SetHeader("X-Nuage-OrderBy", info.OrderBy)
-	}
-
-	if info.Page != -1 {
-		request.SetHeader("X-Nuage-Page", strconv.Itoa(info.Page))
-	}
-
-	if info.PageSize > 0 {
-		request.SetHeader("X-Nuage-PageSize", strconv.Itoa(info.PageSize))
-	}
-
-	if len(info.GroupBy) > 0 {
-		request.SetHeader("X-Nuage-GroupBy", "true")
-		request.SetHeader("X-Nuage-Attributes", strings.Join(info.GroupBy, ", "))
-	}
-}
-
-// Private.
-//
-// Fills the given FetchingInfo according to the HTTP headers of the given Response.
-func readHeaders(response *Response, info *FetchingInfo) {
-
-	if info == nil {
-		return
-	}
-
-	info.Filter = response.GetHeader("X-Nuage-Filter")
-	info.FilterType = response.GetHeader("X-Nuage-FilterType")
-	// info.GroupBy = response.GetHeader("X-Nuage-GroupBy")
-	info.OrderBy = response.GetHeader("X-Nuage-OrderBy")
-	info.Page, _ = strconv.Atoi(response.GetHeader("X-Nuage-Page"))
-	info.PageSize, _ = strconv.Atoi(response.GetHeader("X-Nuage-PageSize"))
-	info.TotalCount, _ = strconv.Atoi(response.GetHeader("X-Nuage-Count"))
 }
 
 // Fetchs the given Exposable from the server.
