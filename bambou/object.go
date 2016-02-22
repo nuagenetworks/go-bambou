@@ -44,9 +44,6 @@ type Exposable interface {
 	Operationable
 }
 
-// Represents a list of Rootables
-type RootablesList []Rootable
-
 // Interface of a Rootable object.
 //
 // An Rootable also implements the Identifiable and Exposable. Rootable
