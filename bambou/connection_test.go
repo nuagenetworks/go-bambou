@@ -512,11 +512,11 @@ func TestConnection_sendNativeRequest(t *testing.T) {
 
 	Convey("Given I create a sucessful request to github", t, func() {
 
-		req := NewRequest("https://api.github.com")
+		req := NewRequest("http://jsonplaceholder.typicode.com/post/1")
 		resp := sendNativeRequest(req)
 
-		Convey("Then I should get a response with code 200", func() {
-			So(resp.Code, ShouldEqual, 200)
+		Convey("Then I should get a response with code 404", func() {
+			So(resp.Code, ShouldEqual, 404)
 		})
 	})
 
