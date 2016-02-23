@@ -33,7 +33,7 @@ func TestSession_NewSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
+		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootdentity}}}
 
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
@@ -63,7 +63,7 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
+		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootdentity}}}
 
 		Convey("When I prepare the Headers with a session that doesn't have an APIKey", func() {
 
@@ -110,7 +110,7 @@ func TestSession_StartStopSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
+		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootdentity}}}
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
 		Convey("Then the CurrentSession() should be nil", func() {
@@ -136,7 +136,13 @@ func TestSession_StartStopSession(t *testing.T) {
 
 		Convey("When I start the session and cannot get the root object", func() {
 
-			s.Root = &testFailedRoot{}
+			defer patch(&sendNativeRequest, func(request *request) *response {
+				return &response{
+					Code: 500,
+				}
+			}).restore()
+
+			s.Root = &fakeUnfetchableRootObject{}
 			err := s.Start()
 
 			Convey("The err should not be nil", func() {

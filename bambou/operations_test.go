@@ -37,7 +37,7 @@ func TestOperations_FetchEntity(t *testing.T) {
 
 	Convey("Given I create a new Exposed object", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
 
 		Convey("When I fetch it with success", func() {
 
@@ -98,7 +98,7 @@ func TestOperations_SaveEntity(t *testing.T) {
 
 	Convey("Given I create a new Exposed object", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
 
 		Convey("When I save it with success", func() {
 
@@ -169,7 +169,7 @@ func TestOperations_DeleteEntity(t *testing.T) {
 
 	Convey("Given I create a new Exposed object", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
 
 		Convey("When I delete it with success", func() {
 
@@ -212,7 +212,7 @@ func TestOperations_FetchChildren(t *testing.T) {
 
 	Convey("Given I create a new Exposed object", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "yyy"}}
 
 		Convey("When I Fetch its children with success", func() {
 
@@ -223,7 +223,7 @@ func TestOperations_FetchChildren(t *testing.T) {
 				}
 			}).restore()
 
-			var l fakeExposedList
+			var l fakeObjectsList
 			FetchChildren(e, fakeIdentity, &l, nil)
 
 			Convey("Then the lenght of the children list should be 2", func() {
@@ -247,7 +247,7 @@ func TestOperations_FetchChildren(t *testing.T) {
 				}
 			}).restore()
 
-			var l fakeExposedList
+			var l fakeObjectsList
 			err := FetchChildren(e, fakeIdentity, &l, nil)
 
 			Convey("Then error should not be nil", func() {
@@ -264,7 +264,7 @@ func TestOperations_FetchChildren(t *testing.T) {
 				}
 			}).restore()
 
-			var l fakeExposedList
+			var l fakeObjectsList
 
 			Convey("Then it should panic", func() {
 				So(func() { FetchChildren(e, fakeIdentity, &l, nil) }, ShouldPanic)
@@ -281,8 +281,8 @@ func TestOperations_CreateChild(t *testing.T) {
 
 	Convey("Given I create a new Exposed object and a child", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
-		c := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		c := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity}}
 
 		Convey("When I create it with success", func() {
 
@@ -345,9 +345,9 @@ func TestOperations_AssignChildren(t *testing.T) {
 			}
 		}).restore()
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
-		c := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity}}
-		l := fakeExposedList{c}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		c := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity}}
+		l := fakeObjectsList{c}
 
 		Convey("When I assign them with success", func() {
 

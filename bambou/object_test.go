@@ -32,7 +32,7 @@ import (
 func TestExposedObject_SetGetIdentity(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
-		e := &fakeExposed{}
+		e := &fakeObject{}
 
 		Convey("When I set the identity", func() {
 			e.SetIdentity(fakeIdentity)
@@ -52,7 +52,7 @@ func TestExposedObject_URL(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{}}
+		e := &fakeObject{ExposedObject: ExposedObject{}}
 
 		Convey("When I set the ID and the Identity", func() {
 
@@ -104,7 +104,7 @@ func TestExposedObject_GetURLForChildrenIdentity(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
 
 		Convey("When I retrieve the URL for an identity", func() {
 
@@ -125,7 +125,7 @@ func TestExposedObject_String(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
 
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
 
 		Convey("Then the string representation should be <fake:xxx>", func() {
 			So(e.String(), ShouldEqual, "<fake:xxx>")

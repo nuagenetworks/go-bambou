@@ -44,7 +44,7 @@ func TestConnection_NewError(t *testing.T) {
 func TestConnection_Start(t *testing.T) {
 
 	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "url", &testRoot{})
+		return NewSession("username", "password", "organization", "url", &fakeRootObject{})
 	}).restore()
 
 	defer func() {
