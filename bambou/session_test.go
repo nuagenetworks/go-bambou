@@ -33,7 +33,8 @@ func TestSession_NewSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
+		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
+
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
 		Convey("Then the properties Username should be 'username'", func() {
@@ -62,7 +63,7 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
+		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
 
 		Convey("When I prepare the Headers with a session that doesn't have an APIKey", func() {
 
@@ -109,7 +110,7 @@ func TestSession_StartStopSession(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &testRoot{ExposedObject: ExposedObject{Identity: testRootdentity}}
+		r := &testRoot{fakeExposed: fakeExposed{ExposedObject: ExposedObject{Identity: testRootdentity}}}
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
 		Convey("Then the CurrentSession() should be nil", func() {
@@ -152,38 +153,4 @@ func TestSession_StartStopSession(t *testing.T) {
 			})
 		})
 	})
-
 }
-
-var testRootdentity = Identity{
-	RESTName:     "root",
-	ResourceName: "root",
-}
-
-type testRoot struct {
-	ExposedObject
-
-	UserName     string `json:"userName,omitempty"`
-	Password     string `json:"password,omitempty"`
-	APIKey       string `json:"APIKey,omitempty"`
-	Organization string `json:"enterprise,omitempty"`
-}
-
-func (o *testRoot) GetAPIKey() string                           { return o.APIKey }
-func (o *testRoot) SetAPIKey(key string)                        { o.APIKey = key }
-func (o *testRoot) GetGeneralURL() string                       { return CurrentSession().URL + "/" + o.Identity.ResourceName }
-func (o *testRoot) GetPersonalURL() string                      { return o.GetPersonalURL() }
-func (o *testRoot) Save() *Error                                { return nil }
-func (o *testRoot) Delete() *Error                              { return nil }
-func (o *testRoot) GetURLForChildrenIdentity(i Identity) string { return "" }
-
-func (o *testRoot) Fetch() *Error {
-	o.APIKey = "api-key"
-	return nil
-}
-
-type testFailedRoot struct {
-	testRoot
-}
-
-func (o *testFailedRoot) Fetch() *Error { return NewError(500, "Error") }

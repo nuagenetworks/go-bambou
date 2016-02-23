@@ -128,15 +128,3 @@ func TestExposedObject_String(t *testing.T) {
 		})
 	})
 }
-
-var fakeIdentity = Identity{"fake", "fakes"}
-
-type fakeExposedList []*fakeExposed
-
-type fakeExposed struct {
-	ExposedObject
-}
-
-func (o *fakeExposed) Save() *Error   { return nil }
-func (o *fakeExposed) Delete() *Error { return nil }
-func (o *fakeExposed) Fetch() *Error  { return nil }

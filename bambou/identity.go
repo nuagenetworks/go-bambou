@@ -34,14 +34,6 @@ var AllIdentity = Identity{
 	ResourceName: "__all__",
 }
 
-// IdentifiablesList represents a list of Identifiable.
-type IdentifiablesList []Identifiable
-
-// Identifiable is the interface for objects that can be identified using an Identity.
-type Identifiable interface {
-	GetIdentity() Identity
-}
-
 // Identity is a structure that contains the necessary information about an Identifiable.
 // The RESTName is usually the singular form of the ResourceName.
 // For instance, "enterprise" and "enterprises".

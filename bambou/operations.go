@@ -29,19 +29,9 @@ import (
 	"reflect"
 )
 
-// Operationable is the interface of objects that can be used with the operation functions.
-type Operationable interface {
-	Fetch() *Error
-	Save() *Error
-	Delete() *Error
-	GetPersonalURL() string
-	GetGeneralURL() string
-	GetURLForChildrenIdentity(Identity) string
-}
-
 // FetchEntity fetchs the given Exposable from the server.
 // You should not use this function by yourself.
-func FetchEntity(object Operationable) *Error {
+func FetchEntity(object Exposable) *Error {
 
 	request := newRequest(object.GetPersonalURL())
 	connection := newConnection()

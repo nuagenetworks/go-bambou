@@ -27,14 +27,17 @@ import (
 	"fmt"
 )
 
-// ExposablesList represents a list of Exposables.
-type ExposablesList []Exposable
-
 // Exposable is the interface of objects that can be retrieved and sent to the server.
 // An Exposable implements the Identifiable and Operationable interfaces.
 type Exposable interface {
-	Identifiable
-	Operationable
+	Fetch() *Error
+	Save() *Error
+	Delete() *Error
+	GetPersonalURL() string
+	GetGeneralURL() string
+	GetURLForChildrenIdentity(Identity) string
+	GetIdentity() Identity
+	SetIdentity(Identity)
 }
 
 // Rootable is the interface that must be implemented by the root object of the API.
@@ -45,6 +48,9 @@ type Rootable interface {
 	GetAPIKey() string
 	SetAPIKey(string)
 }
+
+// ExposedObjectsList is a list of exposed objects
+type ExposedObjectsList []*ExposedObject
 
 // ExposedObject represents an object than contains information common to all objects.
 // exposed by the server.
@@ -59,10 +65,16 @@ type ExposedObject struct {
 	Identity     Identity `json:"-"`
 }
 
-// GetIdentity returns the Identity
+// GetIdentity returns the Identity.
 func (o *ExposedObject) GetIdentity() Identity {
 
 	return o.Identity
+}
+
+// SetIdentity sets the Identity of the object.
+func (o *ExposedObject) SetIdentity(identity Identity) {
+
+	o.Identity = identity
 }
 
 // GetGeneralURL returns the URL of a list of the objects.
