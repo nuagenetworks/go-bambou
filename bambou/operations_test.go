@@ -144,6 +144,20 @@ func TestOperations_SaveEntity(t *testing.T) {
 				So(func() { SaveEntity(e) }, ShouldPanic)
 			})
 		})
+
+		Convey("When I save it and I got no data", func() {
+
+			defer patch(&sendNativeRequest, func(request *request) *response {
+				return &response{
+					Code: 200,
+				}
+			}).restore()
+
+			Convey("Then it not should panic", func() {
+				So(func() { SaveEntity(e) }, ShouldNotPanic)
+			})
+		})
+
 	})
 }
 
@@ -322,7 +336,7 @@ func TestOperations_AssignChildren(t *testing.T) {
 	defer patch(&CurrentSession, func() *Session {
 		return NewSession("username", "password", "organization", "http://fake.com", nil)
 	}).restore()
-    
+
 	Convey("Given I create a new Exposed object and a list of children to assign", t, func() {
 
 		defer patch(&sendNativeRequest, func(request *request) *response {

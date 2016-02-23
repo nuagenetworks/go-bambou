@@ -79,10 +79,12 @@ func SaveEntity(object Exposable) *Error {
 		return err1
 	}
 
-	err2 := json.Unmarshal(response.Data[1:len(response.Data)-1], &object)
+	if len(response.Data) > 0 {
+		err2 := json.Unmarshal(response.Data[1:len(response.Data)-1], &object)
 
-	if err2 != io.EOF && err2 != nil {
-		panic("Unable to unmarshal json: " + err2.Error())
+		if err2 != io.EOF && err2 != nil {
+			panic("Unable to unmarshal json: " + err2.Error())
+		}
 	}
 
 	return nil
