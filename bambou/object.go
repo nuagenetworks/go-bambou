@@ -49,9 +49,6 @@ type Rootable interface {
 	SetAPIKey(string)
 }
 
-// ExposedObjectsList is a list of exposed objects
-type ExposedObjectsList []*ExposedObject
-
 // ExposedObject represents an object than contains information common to all objects.
 // exposed by the server.
 // This struct must be embedded into all objects that are available

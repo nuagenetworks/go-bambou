@@ -29,13 +29,17 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestExposedObject_GetIdentity(t *testing.T) {
+func TestExposedObject_SetGetIdentity(t *testing.T) {
 
 	Convey("Given I create a new ExposedObject", t, func() {
-		e := &fakeExposed{ExposedObject: ExposedObject{Identity: fakeIdentity}}
+		e := &fakeExposed{}
 
-		Convey("Then Identity should fake", func() {
-			So(e.GetIdentity(), ShouldResemble, fakeIdentity)
+		Convey("When I set the identity", func() {
+			e.SetIdentity(fakeIdentity)
+
+			Convey("Then Identity should fake", func() {
+				So(e.GetIdentity(), ShouldResemble, fakeIdentity)
+			})
 		})
 	})
 }
