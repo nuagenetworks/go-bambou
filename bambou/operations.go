@@ -1,21 +1,15 @@
 // Copyright (c) 2015, Alcatel-Lucent Inc.
-//
 // All rights reserved.
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-//
 // * Redistributions of source code must retain the above copyright notice, this
 //   list of conditions and the following disclaimer.
-//
 // * Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the following disclaimer in the documentation
 //   and/or other materials provided with the distribution.
-//
 // * Neither the name of bambou nor the names of its
 //   contributors may be used to endorse or promote products derived from
 //   this software without specific prior written permission.
-//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -46,6 +40,7 @@ type Operationable interface {
 }
 
 // FetchEntity fetchs the given Exposable from the server.
+// You should not use this function by yourself.
 func FetchEntity(object Operationable) *Error {
 
 	request := newRequest(object.GetPersonalURL())
@@ -67,6 +62,7 @@ func FetchEntity(object Operationable) *Error {
 }
 
 // SaveEntity saves the given Exposable into the server.
+// You should not use this function by yourself.
 func SaveEntity(object Exposable) *Error {
 
 	data, _ := json.Marshal(object)
@@ -93,6 +89,7 @@ func SaveEntity(object Exposable) *Error {
 }
 
 // DeleteEntity deletes the given Exposable from the server.
+// You should not use this function by yourself.
 func DeleteEntity(object Exposable) *Error {
 
 	request := newRequest(object.GetPersonalURL())
@@ -110,11 +107,7 @@ func DeleteEntity(object Exposable) *Error {
 }
 
 // FetchChildren fetches the children with of given parent identified by the given identify.
-//
-// The dest parameters must be a pointer to some Exposable object.
-// The given FetchingInfo will be used to apply pagination, or filtering etc, and will
-// be populated back according to the response (with the total cound of objects for instance).
-// In case of error, an *Error is returned, otherwise nil.
+// You should not use this function by yourself.
 func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
 	request := newRequest(parent.GetURLForChildrenIdentity(identity))
@@ -142,8 +135,7 @@ func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *
 }
 
 // CreateChild creates a new child Exposable under the given parent Exposable in the server.
-//
-// In case of error, an *Error is returned, otherwise nil.
+// You should not use this function by yourself.
 func CreateChild(parent Exposable, child Exposable) *Error {
 
 	data, _ := json.Marshal(child)
@@ -170,10 +162,7 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 }
 
 // AssignChildren assigns the list of given child Exposables to the given Exposable parent in the server.
-//
-// You must provide the Identity of the children you want to assign. This is mandatory in
-// case you want to unassign all objects.
-// In case of error, an Error is returned, otherwise nil.
+// You should not use this function by yourself.
 func AssignChildren(parent Exposable, children interface{}, identity Identity) *Error {
 
 	var ids []string

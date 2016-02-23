@@ -1,21 +1,15 @@
 // Copyright (c) 2015, Alcatel-Lucent Inc.
-//
 // All rights reserved.
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-//
 // * Redistributions of source code must retain the above copyright notice, this
 //   list of conditions and the following disclaimer.
-//
 // * Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the following disclaimer in the documentation
 //   and/or other materials provided with the distribution.
-//
 // * Neither the name of bambou nor the names of its
 //   contributors may be used to endorse or promote products derived from
 //   this software without specific prior written permission.
-//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -47,7 +41,6 @@ type Session struct {
 }
 
 // NewSession returns a new *Session
-//
 // You need to provide a Rootable object that will be used to contain
 // the results of the authentication process, like the api key for instance.
 func NewSession(username, password, organization, url string, root Rootable) *Session {
@@ -90,7 +83,6 @@ func (s *Session) makeAuthorizationHeaders() string {
 }
 
 // Start starts the session.
-//
 // At that point the authentication will be done.
 func (s *Session) Start() *Error {
 

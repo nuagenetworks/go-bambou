@@ -1,21 +1,15 @@
 // Copyright (c) 2015, Alcatel-Lucent Inc.
-//
 // All rights reserved.
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-//
 // * Redistributions of source code must retain the above copyright notice, this
 //   list of conditions and the following disclaimer.
-//
 // * Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the following disclaimer in the documentation
 //   and/or other materials provided with the distribution.
-//
 // * Neither the name of bambou nor the names of its
 //   contributors may be used to endorse or promote products derived from
 //   this software without specific prior written permission.
-//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -41,7 +35,6 @@ type EventHandler func(*Event)
 type eventHandlers map[string]EventHandler
 
 // PushCenter is a structure that allows the user to deal with notifications.
-//
 // You can register multiple handlers for several Identity. When a notification
 // is sent by the server and the Identity of its content matches one of the
 // registered handler, this handler will be called.
@@ -66,7 +59,6 @@ func NewPushCenter() *PushCenter {
 }
 
 // RegisterHandlerForIdentity registers the given EventHandler for the given Entity Identity.
-//
 // You can pass the bambou.AllIdentity as identity to register the handler
 // for all events. If you pass a handler for an Identity that is already registered
 // the previous handler will be silently overwriten.
@@ -143,7 +135,6 @@ func (p *PushCenter) Stop() {
 }
 
 // Private.
-//
 // Will handle the creation of new *Notification
 func (p *PushCenter) listen() {
 
