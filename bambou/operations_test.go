@@ -239,6 +239,39 @@ func TestOperations_FetchChildren(t *testing.T) {
 			})
 		})
 
+		Convey("When I Fetch its children while there is no data", func() {
+
+			defer patch(&sendNativeRequest, func(request *request) *response {
+				return &response{
+					Code: 204,
+				}
+			}).restore()
+
+			var l fakeObjectsList
+			FetchChildren(e, fakeIdentity, &l, nil)
+
+			Convey("Then the lenght of the children list should be 0", func() {
+				So(l, ShouldBeNil)
+			})
+		})
+
+		Convey("When I Fetch its children while there is none", func() {
+
+			defer patch(&sendNativeRequest, func(request *request) *response {
+				return &response{
+					Code: 200,
+					Data: []byte("[]"),
+				}
+			}).restore()
+
+			var l fakeObjectsList
+			FetchChildren(e, fakeIdentity, &l, nil)
+
+			Convey("Then the lenght of the children list should be 0", func() {
+				So(len(l), ShouldEqual, 0)
+			})
+		})
+
 		Convey("When I fetch the children and I got an communication error", func() {
 
 			defer patch(&sendNativeRequest, func(request *request) *response {

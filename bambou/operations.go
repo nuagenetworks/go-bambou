@@ -25,6 +25,7 @@ package bambou
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"reflect"
 )
@@ -42,10 +43,11 @@ func FetchEntity(object Exposable) *Error {
 		return error
 	}
 
-	err := json.Unmarshal(response.Data[1:len(response.Data)-1], &object)
+	data := response.Data[1 : len(response.Data)-1]
+	err := json.Unmarshal(data, &object)
 
 	if err != io.EOF && err != nil {
-		panic("Unable to unmarshal json: " + err.Error())
+		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err.Error()))
 	}
 
 	return nil
@@ -70,10 +72,11 @@ func SaveEntity(object Exposable) *Error {
 	}
 
 	if len(response.Data) > 0 {
-		err2 := json.Unmarshal(response.Data[1:len(response.Data)-1], &object)
+		data := response.Data[1 : len(response.Data)-1]
+		err2 := json.Unmarshal(data, &object)
 
 		if err2 != io.EOF && err2 != nil {
-			panic("Unable to unmarshal json: " + err2.Error())
+			panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
 		}
 	}
 
@@ -113,13 +116,18 @@ func FetchChildren(parent Exposable, identity Identity, dest interface{}, info *
 		return error
 	}
 
-	err := json.Unmarshal(response.Data, dest)
+	readHeaders(response, info)
 
-	if err != io.EOF && err != nil {
-		panic("Unable to unmarshal json: " + err.Error())
+	if response.Code == responseCodeEmpty {
+		return nil
 	}
 
-	readHeaders(response, info)
+	data := response.Data
+	err := json.Unmarshal(data, dest)
+
+	if err != io.EOF && err != nil {
+		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err.Error()))
+	}
 
 	identify(dest, identity)
 
@@ -144,10 +152,11 @@ func CreateChild(parent Exposable, child Exposable) *Error {
 		return error
 	}
 
-	err := json.Unmarshal(response.Data[1:len(response.Data)-1], child)
+	data = response.Data[1 : len(response.Data)-1]
+	err := json.Unmarshal(data, child)
 
 	if err != io.EOF && err != nil {
-		panic("Unable to unmarshal json: " + err.Error())
+		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err.Error()))
 	}
 
 	return nil
