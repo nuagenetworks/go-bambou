@@ -41,8 +41,8 @@ func TestIdentity_String(t *testing.T) {
 	Convey("Given I create a new identity", t, func() {
 		i := Identity{"restname", "resourcename"}
 
-		Convey("Then String should <restname|resourcename>", func() {
-			So(i.String(), ShouldEqual, "<restname|resourcename>")
+		Convey("Then String should <Identity restname|resourcename>", func() {
+			So(i.String(), ShouldEqual, "<Identity restname|resourcename>")
 		})
 	})
 }

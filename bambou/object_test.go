@@ -127,8 +127,8 @@ func TestExposedObject_String(t *testing.T) {
 
 		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
 
-		Convey("Then the string representation should be <fake:xxx>", func() {
-			So(e.String(), ShouldEqual, "<fake:xxx>")
+		Convey("Then the string representation should be <ExposedObject fake:xxx>", func() {
+			So(e.String(), ShouldEqual, "<ExposedObject fake:xxx>")
 		})
 	})
 }
