@@ -45,7 +45,7 @@ type Identity struct {
 // String returns the string representation of the identity.
 func (i Identity) String() string {
 
-	return fmt.Sprintf("<%s|%s>", i.RESTName, i.ResourceName)
+	return fmt.Sprintf("<Identity %s|%s>", i.RESTName, i.ResourceName)
 }
 
 // identify applies the given Identity to a list of Exposables.

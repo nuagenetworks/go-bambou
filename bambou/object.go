@@ -105,5 +105,5 @@ func (o *ExposedObject) GetURLForChildrenIdentity(identity Identity) string {
 // String returns the string representation of the object.
 func (o *ExposedObject) String() string {
 
-	return fmt.Sprintf("<%s:%s>", o.Identity.RESTName, o.ID)
+	return fmt.Sprintf("<ExposedObject %s:%s>", o.Identity.RESTName, o.ID)
 }
