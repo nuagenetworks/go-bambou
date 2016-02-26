@@ -356,7 +356,7 @@ func (s *Session) FetchChildren(parent Exposable, identity Identity, dest interf
 func (s *Session) CreateChild(parent Exposable, child Exposable) *Error {
 
 	data, _ := json.Marshal(child)
-	request, _ := http.NewRequest(http.MethodPost, s.getURLForChildrenIdentity(parent, child.GetIdentity()), bytes.NewBuffer(data))
+	request, _ := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.GetIdentity()), bytes.NewBuffer(data))
 	response, err1 := s.send(request, nil)
 
 	if response != nil {
