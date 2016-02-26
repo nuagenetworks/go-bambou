@@ -118,21 +118,21 @@ func TestPushCenter_Start(t *testing.T) {
 
 	Convey("Given I create a new PushCenter and resgister a handler", t, func() {
 
-		n := 0
+		n := make(EventsList, 0)
 		c := 0
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 			if c == 0 {
 				w.Header().Set("Content-Type", "application/json")
-				fmt.Fprint(w, `{"uuid": "x", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+				fmt.Fprint(w, `{"uuid": "x", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{"ID": "x"}]}]}`)
 			} else if c == 1 {
 				w.Header().Set("Content-Type", "application/json")
-				fmt.Fprint(w, `{"uuid": "y", "events": [{"type": "CREATE", "entityType": "notfake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+				fmt.Fprint(w, `{"uuid": "y", "events": [{"type": "CREATE", "entityType": "notfake", "updateMechanism": "DEFAULT", "entities": [{"ID": "y"}]}]}`)
 			} else {
 				time.Sleep(2 * time.Second)
 				w.Header().Set("Content-Type", "application/json")
-				fmt.Fprint(w, `{"uuid": "z", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+				fmt.Fprint(w, `{"uuid": "z", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{"ID": "z"}]}]}`)
 			}
 			c++
 		}))
@@ -142,8 +142,8 @@ func TestPushCenter_Start(t *testing.T) {
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
 		p := NewPushCenter(session)
-		h1 := func(*Event) { n++ }
-		h2 := func(*Event) { n++ }
+		h1 := func(e *Event) { n = append(n, e) }
+		h2 := func(e *Event) { n = append(n, e) }
 		p.RegisterHandlerForIdentity(h1, AllIdentity)
 		p.RegisterHandlerForIdentity(h2, fakeIdentity)
 
@@ -153,7 +153,13 @@ func TestPushCenter_Start(t *testing.T) {
 			time.Sleep(20 * time.Millisecond)
 
 			Convey("Then the number of notifications should be 3", func() {
-				So(n, ShouldEqual, 3)
+				So(len(n), ShouldEqual, 3)
+			})
+
+			Convey("Then events Data should be correct ", func() {
+				So(string(n[0].Data), ShouldEqual, `{"ID":"x"}`)
+				So(string(n[1].Data), ShouldEqual, `{"ID":"x"}`)
+				So(string(n[2].Data), ShouldEqual, `{"ID":"y"}`)
 			})
 		})
 	})
