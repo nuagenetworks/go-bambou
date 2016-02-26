@@ -23,10 +23,10 @@
 
 package bambou
 
-import (
-	"encoding/json"
-	"io"
-)
+import "encoding/json"
+
+// NotificationsChannel is used to received notification from the session
+type NotificationsChannel chan *Notification
 
 // EventHandler is prototype of a Push Center Handler.
 type EventHandler func(*Event)
@@ -40,21 +40,23 @@ type eventHandlers map[string]EventHandler
 // registered handler, this handler will be called.
 type PushCenter struct {
 	isRunning bool
-	Channel   chan *Notification
+	Channel   NotificationsChannel
 
 	handlers      eventHandlers
 	defaultHander EventHandler
 	lastEventID   string
 	stop          chan bool
+	session       *Session
 }
 
 // NewPushCenter creates a new PushCenter.
-func NewPushCenter() *PushCenter {
+func NewPushCenter(session *Session) *PushCenter {
 
 	return &PushCenter{
-		Channel:  make(chan *Notification),
+		Channel:  make(NotificationsChannel),
 		stop:     make(chan bool),
 		handlers: eventHandlers{},
+		session:  session,
 	}
 }
 
@@ -103,7 +105,7 @@ func (p *PushCenter) Start() {
 
 	go func() {
 		for {
-			go p.listen()
+			go p.session.NextEvent(p.Channel, &p.lastEventID)
 
 			select {
 			case notification := <-p.Channel:
@@ -132,43 +134,4 @@ func (p *PushCenter) Stop() {
 	p.isRunning = false
 	p.lastEventID = ""
 	p.stop <- true
-}
-
-// Private.
-// Will handle the creation of new *Notification
-func (p *PushCenter) listen() {
-
-	currentURL := CurrentSession().URL + "/events"
-
-	if p.lastEventID != "" {
-		currentURL += "?uuid=" + p.lastEventID
-	}
-
-	request := newRequest(currentURL)
-	connection := newConnection()
-	response, error := connection.start(request)
-
-	// if the push center not running anymore, return
-	if !p.isRunning {
-		return
-	}
-
-	if error != nil {
-		Logger().Errorf("Error during push: %s", error.Error())
-		return
-	}
-
-	notification := NewNotification()
-	err := json.Unmarshal(response.Data, &notification)
-
-	if err != io.EOF && err != nil {
-		Logger().Errorf("Error during push: %s", err.Error())
-		return
-	}
-
-	p.lastEventID = notification.UUID
-
-	if len(notification.Events) > 0 {
-		p.Channel <- notification
-	}
 }

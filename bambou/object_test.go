@@ -29,9 +29,33 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestExposedObject_GetID(t *testing.T) {
+
+	Convey("Given I create a new object", t, func() {
+
+		e := &fakeObject{}
+
+		Convey("When I set the ID", func() {
+			e.ID = "xxx"
+
+			Convey("Then GetID should return 'xxx'", func() {
+				So(e.GetID(), ShouldEqual, "xxx")
+			})
+		})
+
+		Convey("When I don't set the ID", func() {
+
+			Convey("Then GetID() should ''", func() {
+				So(e.GetID(), ShouldEqual, "")
+			})
+		})
+	})
+}
+
 func TestExposedObject_SetGetIdentity(t *testing.T) {
 
-	Convey("Given I create a new ExposedObject", t, func() {
+	Convey("Given I create a new object", t, func() {
+
 		e := &fakeObject{}
 
 		Convey("When I set the identity", func() {
@@ -44,86 +68,9 @@ func TestExposedObject_SetGetIdentity(t *testing.T) {
 	})
 }
 
-func TestExposedObject_URL(t *testing.T) {
-
-	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "http://fake.com", nil)
-	}).restore()
-
-	Convey("Given I create a new ExposedObject", t, func() {
-
-		e := &fakeObject{ExposedObject: ExposedObject{}}
-
-		Convey("When I set the ID and the Identity", func() {
-
-			e.Identity = fakeIdentity
-			e.ID = "xxx"
-
-			Convey("Then general URL should be http://fake.com/fakes", func() {
-				So(e.GetGeneralURL(), ShouldEqual, "http://fake.com/fakes")
-			})
-
-			Convey("Then personal URL should be http://fake.com/fakes/xxx", func() {
-				So(e.GetPersonalURL(), ShouldEqual, "http://fake.com/fakes/xxx")
-			})
-		})
-
-		Convey("When I don't set the Identity", func() {
-
-			e.ID = "xxx"
-
-			Convey("Then getting general URL should panic", func() {
-				So(func() { e.GetPersonalURL() }, ShouldPanic)
-			})
-
-			Convey("Then general personal URL should panic", func() {
-				So(func() { e.GetPersonalURL() }, ShouldPanic)
-			})
-		})
-
-		Convey("When I don't set the ID", func() {
-
-			e.Identity = fakeIdentity
-
-			Convey("Then getting general URL should panic", func() {
-				So(func() { e.GetPersonalURL() }, ShouldPanic)
-			})
-
-			Convey("Then general personal URL should panic", func() {
-				So(func() { e.GetPersonalURL() }, ShouldPanic)
-			})
-		})
-	})
-}
-
-func TestExposedObject_GetURLForChildrenIdentity(t *testing.T) {
-
-	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "http://fake.com", nil)
-	}).restore()
-
-	Convey("Given I create a new ExposedObject", t, func() {
-
-		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
-
-		Convey("When I retrieve the URL for an identity", func() {
-
-			i := Identity{"child", "children"}
-
-			Convey("Then children URL should http://fake.com/fakes/xxx/children", func() {
-				So(e.GetURLForChildrenIdentity(i), ShouldEqual, "http://fake.com/fakes/xxx/children")
-			})
-		})
-	})
-}
-
 func TestExposedObject_String(t *testing.T) {
 
-	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "http://fake.com", nil)
-	}).restore()
-
-	Convey("Given I create a new ExposedObject", t, func() {
+	Convey("Given I create a new object", t, func() {
 
 		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
 

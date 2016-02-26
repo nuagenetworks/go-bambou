@@ -24,6 +24,9 @@
 package bambou
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -33,47 +36,55 @@ import (
 func TestPushCenter_NewPushCenter(t *testing.T) {
 
 	Convey("Given I create a new PushCenter", t, func() {
-		p := NewPushCenter()
+
+		p := NewPushCenter(nil)
 
 		Convey("Then the Channel should not be nil", func() {
 			So(p.Channel, ShouldNotBeNil)
+			So(p.Channel, ShouldHaveSameTypeAs, make(NotificationsChannel))
 		})
 
 		Convey("Then the stop channel should not be nil", func() {
 			So(p.stop, ShouldNotBeNil)
+			So(p.stop, ShouldHaveSameTypeAs, make(chan bool))
 		})
 
 		Convey("Then the handlers list should not be nil", func() {
 			So(p.handlers, ShouldNotBeNil)
+			So(p.handlers, ShouldHaveSameTypeAs, make(eventHandlers))
 		})
 	})
 }
 
 func TestPushCenter_HandlersRegistration(t *testing.T) {
 
-	Convey("Given I create a new PushCenter", t, func() {
+	Convey("Given I create a new PushCenter and a handler", t, func() {
 
-		p := NewPushCenter()
+		p := NewPushCenter(nil)
 		h := func(*Event) {}
 
-		Convey("When I register a handler for a identity", func() {
+		Convey("When I register the handler for an identity", func() {
 			p.RegisterHandlerForIdentity(h, fakeIdentity)
 
-			Convey("Then it should be registered in the list", func() {
+			Convey("Then it should be registered in the list for that identity", func() {
 				So(p.HasHandlerForIdentity(fakeIdentity), ShouldBeTrue)
-			})
-		})
-
-		Convey("When I unregister a handler for the identity", func() {
-			p.RegisterHandlerForIdentity(h, fakeIdentity)
-			p.UnregisterHandlerForIdentity(fakeIdentity)
-
-			Convey("Then it should not be registered in the list anymore", func() {
-				So(p.HasHandlerForIdentity(fakeIdentity), ShouldBeFalse)
 			})
 
 			Convey("Then the default handler should be nil", func() {
 				So(p.defaultHander, ShouldBeNil)
+			})
+
+			Convey("When I unregister the handler for that identity", func() {
+
+				p.UnregisterHandlerForIdentity(fakeIdentity)
+
+				Convey("Then it should not be registered in the list anymore", func() {
+					So(p.HasHandlerForIdentity(fakeIdentity), ShouldBeFalse)
+				})
+
+				Convey("Then the default handler should be nil", func() {
+					So(p.defaultHander, ShouldBeNil)
+				})
 			})
 		})
 
@@ -87,17 +98,17 @@ func TestPushCenter_HandlersRegistration(t *testing.T) {
 			Convey("Then it should be set as the defaultHandler", func() {
 				So(p.defaultHander, ShouldEqual, h)
 			})
-		})
 
-		Convey("When I unregister the handler for the all identity", func() {
-			p.UnregisterHandlerForIdentity(AllIdentity)
+			Convey("When I unregister the handler for the all identity", func() {
+				p.UnregisterHandlerForIdentity(AllIdentity)
 
-			Convey("Then it should not be registered in the lista anymore", func() {
-				So(p.HasHandlerForIdentity(AllIdentity), ShouldBeFalse)
-			})
+				Convey("Then it should not be registered in the lista anymore", func() {
+					So(p.HasHandlerForIdentity(AllIdentity), ShouldBeFalse)
+				})
 
-			Convey("Then it should not be set as the defaultHandler anymore", func() {
-				So(p.defaultHander, ShouldBeNil)
+				Convey("Then it should not be set as the defaultHandler anymore", func() {
+					So(p.defaultHander, ShouldBeNil)
+				})
 			})
 		})
 	})
@@ -105,52 +116,43 @@ func TestPushCenter_HandlersRegistration(t *testing.T) {
 
 func TestPushCenter_Start(t *testing.T) {
 
-	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "http://fake.com", nil)
-	}).restore()
-
 	Convey("Given I create a new PushCenter and resgister a handler", t, func() {
 
 		n := 0
 		c := 0
-		p := NewPushCenter()
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+			if c == 0 {
+				w.Header().Set("Content-Type", "application/json")
+				fmt.Fprint(w, `{"uuid": "x", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+			} else if c == 1 {
+				w.Header().Set("Content-Type", "application/json")
+				fmt.Fprint(w, `{"uuid": "y", "events": [{"type": "CREATE", "entityType": "notfake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+			} else {
+				time.Sleep(2 * time.Second)
+				w.Header().Set("Content-Type", "application/json")
+				fmt.Fprint(w, `{"uuid": "z", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{}]}]}`)
+			}
+			c++
+		}))
+		defer ts.Close()
+
+		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootIdentity}}}
+		session := NewSession("username", "password", "organization", ts.URL, r)
+
+		p := NewPushCenter(session)
 		h1 := func(*Event) { n++ }
 		h2 := func(*Event) { n++ }
 		p.RegisterHandlerForIdentity(h1, AllIdentity)
 		p.RegisterHandlerForIdentity(h2, fakeIdentity)
 
-		Convey("When I start a running push center with a handler", func() {
-
-			defer func() { p.Stop() }()
-			defer patch(&sendNativeRequest, func(request *request) *response {
-				c++
-				if c == 1 {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-						Data:    []byte("{\"uuid\": \"y\", \"events\": [{\"type\": \"CREATE\", \"entityType\": \"fake\", \"updateMechanism\": \"DEFAULT\", \"entities\": [{}]}]}"),
-					}
-				} else if c == 2 {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-						Data:    []byte("{\"uuid\": \"y\", \"events\": [{\"type\": \"CREATE\", \"entityType\": \"thing\", \"updateMechanism\": \"DEFAULT\", \"entities\": [{}]}]}"),
-					}
-				} else {
-					time.Sleep(1 * time.Second)
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-						Data:    []byte("{\"uuid\": \"y\", \"events\": [{\"type\": \"CREATE\", \"entityType\": \"thing\", \"updateMechanism\": \"DEFAULT\", \"entities\": [{}]}]}"),
-					}
-				}
-			}).restore()
+		Convey("When I start the push center and receive the notifications", func() {
 
 			p.Start()
+			time.Sleep(20 * time.Millisecond)
 
-			time.Sleep(10 * time.Millisecond)
-
-			Convey("Then the number of notification should be 3", func() {
+			Convey("Then the number of notifications should be 3", func() {
 				So(n, ShouldEqual, 3)
 			})
 		})
@@ -159,25 +161,22 @@ func TestPushCenter_Start(t *testing.T) {
 
 func TestPushCenter_Stop(t *testing.T) {
 
-	Convey("Given I create a new PushCenter", t, func() {
+	Convey("Given I have a started Push Center", t, func() {
 
-		p := NewPushCenter()
-		p.isRunning = true
-		p.lastEventID = "x"
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(2 * time.Second)
+		}))
+		defer ts.Close()
 
-		Convey("When I stop a running push center", func() {
+		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootIdentity}}}
+		session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var stopValue bool
-			go p.Stop()
+		p := NewPushCenter(session)
+		p.Start()
 
-			select {
-			case stopValue = <-p.stop:
-			case <-time.After(10 * time.Millisecond):
-			}
+		Convey("When I stop the push center", func() {
 
-			Convey("Then the stop channel should get a true value", func() {
-				So(stopValue, ShouldBeTrue)
-			})
+			p.Stop()
 
 			Convey("Then isRunning should false", func() {
 				So(p.isRunning, ShouldBeFalse)
@@ -185,132 +184,6 @@ func TestPushCenter_Stop(t *testing.T) {
 
 			Convey("Then lastEventID should empty", func() {
 				So(p.lastEventID, ShouldEqual, "")
-			})
-		})
-	})
-}
-
-func TestPushCenter_Listen(t *testing.T) {
-
-	defer patch(&CurrentSession, func() *Session {
-		return NewSession("username", "password", "organization", "http://fake.com", nil)
-	}).restore()
-
-	Convey("Given I create a new PushCenter", t, func() {
-
-		var notif *Notification
-		p := NewPushCenter()
-
-		Convey("Given I receive a push notification", func() {
-
-			Convey("When I receive a push notification and the pushcenter is not runnning", func() {
-
-				defer patch(&sendNativeRequest, func(request *request) *response {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-					}
-				}).restore()
-
-				p.lastEventID = "x"
-
-				go p.listen()
-
-				select {
-				case notif = <-p.Channel:
-				case <-time.After(10 * time.Millisecond):
-				}
-
-				Convey("Then notification should not be nil", func() {
-					So(notif, ShouldBeNil)
-				})
-
-				Convey("Then last Event ID should be the same", func() {
-					So(p.lastEventID, ShouldEqual, "x")
-				})
-			})
-
-			Convey("When I receive a valid push notification", func() {
-
-				defer patch(&sendNativeRequest, func(request *request) *response {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-						Data:    []byte("{\"uuid\": \"y\", \"events\": [{\"type\": \"CREATE\", \"entityType\": \"thing\", \"updateMechanism\": \"DEFAULT\", \"entities\": []}]}"),
-					}
-				}).restore()
-
-				p.lastEventID = "x"
-				p.isRunning = true
-				go p.listen()
-
-				select {
-				case notif = <-p.Channel:
-				case <-time.After(10 * time.Millisecond):
-				}
-
-				Convey("Then notification should not be nil", func() {
-					So(notif, ShouldNotBeNil)
-				})
-
-				Convey("Then last Event ID should be the y", func() {
-					So(p.lastEventID, ShouldEqual, "y")
-				})
-			})
-
-			Convey("When I receive an error", func() {
-
-				defer patch(&sendNativeRequest, func(request *request) *response {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeInternalServerError,
-					}
-				}).restore()
-
-				p.lastEventID = "x"
-				p.isRunning = true
-				go p.listen()
-
-				select {
-				case notif = <-p.Channel:
-				case <-time.After(10 * time.Millisecond):
-				}
-
-				Convey("Then notification should be nil", func() {
-					So(notif, ShouldBeNil)
-				})
-
-				Convey("Then last Event ID should be the same", func() {
-					So(p.lastEventID, ShouldEqual, "x")
-				})
-			})
-
-			Convey("When I receive a push notification with malformed json", func() {
-
-				defer patch(&sendNativeRequest, func(request *request) *response {
-					return &response{
-						Headers: make(map[string]string),
-						Code:    responseCodeSuccess,
-						Data:    []byte("not a valid json"),
-					}
-				}).restore()
-
-				p.lastEventID = "x"
-				p.isRunning = true
-				go p.listen()
-
-				select {
-				case notif = <-p.Channel:
-				case <-time.After(10 * time.Millisecond):
-				}
-
-				Convey("Then notification should be nil", func() {
-					So(notif, ShouldBeNil)
-				})
-
-				Convey("Then last Event ID should be the same", func() {
-					So(p.lastEventID, ShouldEqual, "x")
-				})
 			})
 		})
 	})

@@ -2,28 +2,6 @@
 
 package bambou
 
-import "reflect"
-
-type restorer func()
-
-func (r restorer) restore() {
-	r()
-}
-
-func patch(dest, value interface{}) restorer {
-	destv := reflect.ValueOf(dest).Elem()
-	oldv := reflect.New(destv.Type()).Elem()
-	oldv.Set(destv)
-	valuev := reflect.ValueOf(value)
-	if !valuev.IsValid() {
-		valuev = reflect.Zero(destv.Type())
-	}
-	destv.Set(valuev)
-	return func() {
-		destv.Set(oldv)
-	}
-}
-
 /*
    Fake Exposed
 */
@@ -40,17 +18,12 @@ func (o *fakeObject) Fetch() *Error  { return nil }
 /*
    Fake Rootable
 */
-var fakeRootdentity = Identity{"root", "root"}
+var fakeRootIdentity = Identity{"root", "root"}
 
-type fakeRootObject struct{ fakeObject }
+type fakeRootObject struct {
+	fakeObject
+	APIKey string
+}
 
-func (o *fakeRootObject) GetAPIKey() string    { return "api-key" }
-func (o *fakeRootObject) SetAPIKey(key string) {}
-
-/*
-   Fake Unfetchable Rootable
-*/
-
-type fakeUnfetchableRootObject struct{ fakeRootObject }
-
-func (o *fakeUnfetchableRootObject) Fetch() *Error { return NewError(500, "Error") }
+func (o *fakeRootObject) GetAPIKey() string    { return o.APIKey }
+func (o *fakeRootObject) SetAPIKey(key string) { o.APIKey = key }

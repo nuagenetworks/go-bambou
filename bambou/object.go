@@ -33,11 +33,9 @@ type Exposable interface {
 	Fetch() *Error
 	Save() *Error
 	Delete() *Error
-	GetPersonalURL() string
-	GetGeneralURL() string
-	GetURLForChildrenIdentity(Identity) string
 	GetIdentity() Identity
 	SetIdentity(Identity)
+	GetID() string
 }
 
 // Rootable is the interface that must be implemented by the root object of the API.
@@ -74,32 +72,10 @@ func (o *ExposedObject) SetIdentity(identity Identity) {
 	o.Identity = identity
 }
 
-// GetGeneralURL returns the URL of a list of the objects.
-func (o *ExposedObject) GetGeneralURL() string {
+// GetID returns the ID of the object.
+func (o *ExposedObject) GetID() string {
 
-	if o.Identity.ResourceName == "" {
-		panic("Cannot GetGeneralURL of that as no ResourceName in its Identity")
-	}
-
-	return CurrentSession().URL + "/" + o.Identity.ResourceName
-}
-
-// GetPersonalURL returns the URL that holds the information about the object.
-func (o *ExposedObject) GetPersonalURL() string {
-
-	if o.ID == "" {
-		panic("Cannot GetPersonalURL of an object with no ID set")
-	}
-
-	return o.GetGeneralURL() + "/" + o.ID
-}
-
-// GetURLForChildrenIdentity returns the URL of children with the given identity.
-// The URL will be constructed based on the current object GetPersonalURL value and the identity of
-// the children.
-func (o *ExposedObject) GetURLForChildrenIdentity(identity Identity) string {
-
-	return o.GetPersonalURL() + "/" + identity.ResourceName
+	return o.ID
 }
 
 // String returns the string representation of the object.
