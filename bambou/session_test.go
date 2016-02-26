@@ -122,7 +122,7 @@ func TestSession_prepareHeaders(t *testing.T) {
 
 	Convey("Given I create a FetchingInfo", t, func() {
 		f := NewFetchingInfo()
-		r, _ := http.NewRequest(http.MethodGet, "http://fake.com", nil)
+		r, _ := http.NewRequest("GET", "http://fake.com", nil)
 
 		Convey("When I prepareHeaders with a no fetching info", func() {
 			session.prepareHeaders(r, nil)
@@ -851,7 +851,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response status code should be 200", func() {
@@ -871,7 +871,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response status code should be 201", func() {
@@ -891,7 +891,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response status code should be 204", func() {
@@ -918,7 +918,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response status code should be 200", func() {
@@ -944,7 +944,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response should be nil", func() {
@@ -969,7 +969,7 @@ func TestSession_Send(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			req, _ := http.NewRequest(http.MethodGet, ts.URL, nil)
+			req, _ := http.NewRequest("GET", ts.URL, nil)
 			resp, err := session.send(req, nil)
 
 			Convey("Then response should be nil", func() {

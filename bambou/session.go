@@ -45,7 +45,7 @@ func CurrentSession() Operationable {
 	return _currentSession
 }
 
-// Operational is the the interface that any kind of session must implement
+// Operationable is the the interface that any kind of session must implement
 type Operationable interface {
 	Start() *Error
 	Reset()
@@ -250,7 +250,7 @@ func (s *Session) Reset() {
 // You should not use this function by yourself.
 func (s *Session) FetchEntity(object Exposable) *Error {
 
-	request, _ := http.NewRequest(http.MethodGet, s.getPersonalURL(object), nil)
+	request, _ := http.NewRequest("GET", s.getPersonalURL(object), nil)
 	response, err1 := s.send(request, nil)
 
 	if response != nil {
@@ -278,7 +278,7 @@ func (s *Session) FetchEntity(object Exposable) *Error {
 func (s *Session) SaveEntity(object Exposable) *Error {
 
 	data, _ := json.Marshal(object)
-	request, _ := http.NewRequest(http.MethodPut, s.getPersonalURL(object), bytes.NewBuffer(data))
+	request, _ := http.NewRequest("PUT", s.getPersonalURL(object), bytes.NewBuffer(data))
 	response, err1 := s.send(request, nil)
 
 	if response != nil {
@@ -308,7 +308,7 @@ func (s *Session) SaveEntity(object Exposable) *Error {
 // You should not use this function by yourself.
 func (s *Session) DeleteEntity(object Exposable) *Error {
 
-	request, _ := http.NewRequest(http.MethodDelete, s.getPersonalURL(object), nil)
+	request, _ := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
 	_, error := s.send(request, nil)
 
 	if error != nil {
@@ -323,7 +323,7 @@ func (s *Session) DeleteEntity(object Exposable) *Error {
 // You should not use this function by yourself.
 func (s *Session) FetchChildren(parent Exposable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
-	request, _ := http.NewRequest(http.MethodGet, s.getURLForChildrenIdentity(parent, identity), nil)
+	request, _ := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
 	response, err1 := s.send(request, nil)
 
 	if response != nil {
@@ -395,7 +395,7 @@ func (s *Session) AssignChildren(parent Exposable, children interface{}, identit
 	}
 
 	data, _ := json.Marshal(&ids)
-	request, _ := http.NewRequest(http.MethodPut, s.getURLForChildrenIdentity(parent, identity), bytes.NewBuffer(data))
+	request, _ := http.NewRequest("PUT", s.getURLForChildrenIdentity(parent, identity), bytes.NewBuffer(data))
 	_, error := s.send(request, nil)
 
 	if error != nil {
@@ -416,7 +416,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID *string) {
 		currentURL += "?uuid=" + *lastEventID
 	}
 
-	request, _ := http.NewRequest(http.MethodGet, currentURL, nil)
+	request, _ := http.NewRequest("GET", currentURL, nil)
 	response, err1 := s.send(request, nil)
 
 	if err1 != nil {
