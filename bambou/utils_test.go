@@ -22,8 +22,8 @@ var fakeRootIdentity = Identity{"root", "root"}
 
 type fakeRootObject struct {
 	fakeObject
-	APIKey string
+	Token string `json:"APIKey,omitempty"`
 }
 
-func (o *fakeRootObject) GetAPIKey() string    { return o.APIKey }
-func (o *fakeRootObject) SetAPIKey(key string) { o.APIKey = key }
+func (o *fakeRootObject) APIKey() string       { return o.Token }
+func (o *fakeRootObject) SetAPIKey(key string) { o.Token = key }

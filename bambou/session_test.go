@@ -348,7 +348,7 @@ func TestSession_StartStopSession(t *testing.T) {
 			})
 
 			Convey("Then the Root User APIKey should be 'api-key'", func() {
-				So(CurrentSession().Root().GetAPIKey(), ShouldEqual, "api-key")
+				So(CurrentSession().Root().APIKey(), ShouldEqual, "api-key")
 			})
 
 			Convey("When I reset the session everything should be back to nil", func() {
@@ -356,7 +356,7 @@ func TestSession_StartStopSession(t *testing.T) {
 				session.Reset()
 
 				Convey("Then the session API key should be ''", func() {
-					So(session.Root().GetAPIKey(), ShouldEqual, "")
+					So(session.Root().APIKey(), ShouldEqual, "")
 				})
 
 				Convey("Then the current session should be nil", func() {

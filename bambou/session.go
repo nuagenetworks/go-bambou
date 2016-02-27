@@ -92,7 +92,7 @@ func (s *Session) makeAuthorizationHeaders() string {
 		panic("Error while creating headers: User must be set")
 	}
 
-	key := s.root.GetAPIKey()
+	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
 		panic("Error while creating headers: Password or APIKey must be set")
 	}

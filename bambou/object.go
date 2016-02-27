@@ -33,13 +33,15 @@ type ExposablesList []Exposable
 // Exposable is the interface of objects that can be retrieved and sent to the server.
 // An Exposable implements the Identifiable and Operationable interfaces.
 type Exposable interface {
+	Identity() Identity
+	SetIdentity(Identity)
+
+	Identifier() string
+	SetIdentifier(string)
+
 	Fetch() *Error
 	Save() *Error
 	Delete() *Error
-	Identity() Identity
-	SetIdentity(Identity)
-	Identifier() string
-	SetIdentifier(string)
 }
 
 // Rootable is the interface that must be implemented by the root object of the API.
@@ -47,7 +49,7 @@ type Exposable interface {
 type Rootable interface {
 	Exposable
 
-	GetAPIKey() string
+	APIKey() string
 	SetAPIKey(string)
 }
 
