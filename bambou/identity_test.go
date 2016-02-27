@@ -62,8 +62,8 @@ func TestIdentity_Identify(t *testing.T) {
 			identify(&l, i)
 
 			Convey("Then all objects should have the correct identity", func() {
-				So(l[0].GetIdentity(), ShouldResemble, i)
-				So(l[1].GetIdentity(), ShouldResemble, i)
+				So(l[0].Identity(), ShouldResemble, i)
+				So(l[1].Identity(), ShouldResemble, i)
 			})
 
 		})

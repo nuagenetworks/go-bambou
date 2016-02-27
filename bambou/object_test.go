@@ -29,24 +29,24 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestExposedObject_GetID(t *testing.T) {
+func TestExposedObject_Identifier(t *testing.T) {
 
 	Convey("Given I create a new object", t, func() {
 
 		e := &fakeObject{}
 
 		Convey("When I set the ID", func() {
-			e.ID = "xxx"
+			e.SetIdentifier("xxx")
 
-			Convey("Then GetID should return 'xxx'", func() {
-				So(e.GetID(), ShouldEqual, "xxx")
+			Convey("Then ID should return 'xxx'", func() {
+				So(e.Identifier(), ShouldEqual, "xxx")
 			})
 		})
 
 		Convey("When I don't set the ID", func() {
 
-			Convey("Then GetID() should ''", func() {
-				So(e.GetID(), ShouldEqual, "")
+			Convey("Then ID should ''", func() {
+				So(e.Identifier(), ShouldEqual, "")
 			})
 		})
 	})
@@ -62,7 +62,7 @@ func TestExposedObject_SetGetIdentity(t *testing.T) {
 			e.SetIdentity(fakeIdentity)
 
 			Convey("Then Identity should fake", func() {
-				So(e.GetIdentity(), ShouldResemble, fakeIdentity)
+				So(e.Identity(), ShouldResemble, fakeIdentity)
 			})
 		})
 	})
@@ -72,7 +72,9 @@ func TestExposedObject_String(t *testing.T) {
 
 	Convey("Given I create a new object", t, func() {
 
-		e := &fakeObject{ExposedObject: ExposedObject{Identity: fakeIdentity, ID: "xxx"}}
+		e := &fakeObject{}
+		e.SetIdentity(fakeIdentity)
+		e.SetIdentifier("xxx")
 
 		Convey("Then the string representation should be <ExposedObject fake:xxx>", func() {
 			So(e.String(), ShouldEqual, "<ExposedObject fake:xxx>")

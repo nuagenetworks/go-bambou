@@ -187,24 +187,24 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 
 func (s *Session) getGeneralURL(o Exposable) string {
 
-	if o.GetIdentity().ResourceName == "" {
+	if o.Identity().ResourceName == "" {
 		panic("Cannot GetGeneralURL of that as no ResourceName in its Identity")
 	}
 
-	return s.URL + "/" + o.GetIdentity().ResourceName
+	return s.URL + "/" + o.Identity().ResourceName
 }
 
 func (s *Session) getPersonalURL(o Exposable) string {
 
 	if _, ok := o.(Rootable); ok {
-		return s.URL + "/" + o.GetIdentity().RESTName
+		return s.URL + "/" + o.Identity().RESTName
 	}
 
-	if o.GetID() == "" {
+	if o.Identifier() == "" {
 		panic("Cannot GetPersonalURL of an object with no ID set")
 	}
 
-	return s.getGeneralURL(o) + "/" + o.GetID()
+	return s.getGeneralURL(o) + "/" + o.Identifier()
 }
 
 func (s *Session) getURLForChildrenIdentity(o Exposable, childrenIdentity Identity) string {
@@ -356,7 +356,7 @@ func (s *Session) FetchChildren(parent Exposable, identity Identity, dest interf
 func (s *Session) CreateChild(parent Exposable, child Exposable) *Error {
 
 	data, _ := json.Marshal(child)
-	request, _ := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.GetIdentity()), bytes.NewBuffer(data))
+	request, _ := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.Identity()), bytes.NewBuffer(data))
 	response, err1 := s.send(request, nil)
 
 	if response != nil {

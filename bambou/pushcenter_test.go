@@ -138,7 +138,9 @@ func TestPushCenter_Start(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootIdentity}}}
+		r := &fakeRootObject{}
+		r.SetIdentity(fakeRootIdentity)
+
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
 		p := NewPushCenter(session)
@@ -174,7 +176,9 @@ func TestPushCenter_Stop(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{fakeObject: fakeObject{ExposedObject: ExposedObject{Identity: fakeRootIdentity}}}
+		r := &fakeRootObject{}
+		r.SetIdentity(fakeRootIdentity)
+
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
 		p := NewPushCenter(session)

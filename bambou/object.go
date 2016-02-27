@@ -27,15 +27,19 @@ import (
 	"fmt"
 )
 
+// ExposablesList is a list of objects implementing the Exposable interface.
+type ExposablesList []Exposable
+
 // Exposable is the interface of objects that can be retrieved and sent to the server.
 // An Exposable implements the Identifiable and Operationable interfaces.
 type Exposable interface {
 	Fetch() *Error
 	Save() *Error
 	Delete() *Error
-	GetIdentity() Identity
+	Identity() Identity
 	SetIdentity(Identity)
-	GetID() string
+	Identifier() string
+	SetIdentifier(string)
 }
 
 // Rootable is the interface that must be implemented by the root object of the API.
@@ -52,34 +56,39 @@ type Rootable interface {
 // This struct must be embedded into all objects that are available
 // throught the ReST api.
 type ExposedObject struct {
-	ID           string   `json:"ID,omitempty"`
-	ParentID     string   `json:"parentID,omitempty"`
-	ParentType   string   `json:"parentType,omitempty"`
-	Owner        string   `json:"owner,omitempty"`
-	ParentObject string   `json:"-"`
-	Identity     Identity `json:"-"`
+	ID         string   `json:"ID,omitempty"`
+	ParentID   string   `json:"parentID,omitempty"`
+	ParentType string   `json:"parentType,omitempty"`
+	Owner      string   `json:"owner,omitempty"`
+	identity   Identity `json:"-"`
 }
 
-// GetIdentity returns the Identity.
-func (o *ExposedObject) GetIdentity() Identity {
+// Identity returns the object's Identity.
+func (o *ExposedObject) Identity() Identity {
 
-	return o.Identity
+	return o.identity
 }
 
 // SetIdentity sets the Identity of the object.
 func (o *ExposedObject) SetIdentity(identity Identity) {
 
-	o.Identity = identity
+	o.identity = identity
 }
 
-// GetID returns the ID of the object.
-func (o *ExposedObject) GetID() string {
+// Identifier returns the object's ID.
+func (o *ExposedObject) Identifier() string {
 
 	return o.ID
+}
+
+// SetID sets the ID of the obje.
+func (o *ExposedObject) SetIdentifier(ID string) {
+
+	o.ID = ID
 }
 
 // String returns the string representation of the object.
 func (o *ExposedObject) String() string {
 
-	return fmt.Sprintf("<ExposedObject %s:%s>", o.Identity.RESTName, o.ID)
+	return fmt.Sprintf("<ExposedObject %s:%s>", o.identity.RESTName, o.ID)
 }

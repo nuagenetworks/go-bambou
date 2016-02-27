@@ -51,17 +51,9 @@ func (i Identity) String() string {
 // identify applies the given Identity to a list of Exposables.
 func identify(list interface{}, identity Identity) {
 
-	l := reflect.ValueOf(list).Elem().Len()
+	il := []reflect.Value{reflect.ValueOf(identity)}
 
-	for i := 0; i < l; i++ {
-
-		o := reflect.ValueOf(list).Elem().Index(i).Elem()
-
-		identityField := o.FieldByName("Identity")
-		RESTNameField := identityField.FieldByName("RESTName")
-		resourceNameField := identityField.FieldByName("ResourceName")
-
-		RESTNameField.SetString(identity.RESTName)
-		resourceNameField.SetString(identity.ResourceName)
+	for i := 0; i < reflect.ValueOf(list).Elem().Len(); i++ {
+		reflect.ValueOf(list).Elem().Index(i).MethodByName("SetIdentity").Call(il)
 	}
 }
