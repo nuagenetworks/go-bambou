@@ -58,7 +58,7 @@ func TestIdentity_Identify(t *testing.T) {
 
 		Convey("When I Identity some objects with the new Identity", func() {
 
-			l := []*ExposedObject{&ExposedObject{}, &ExposedObject{}}
+			l := []*RemoteObject{&RemoteObject{}, &RemoteObject{}}
 			identify(&l, i)
 
 			Convey("Then all objects should have the correct identity", func() {

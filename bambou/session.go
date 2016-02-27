@@ -49,12 +49,12 @@ func CurrentSession() Operationable {
 type Operationable interface {
 	Start() *Error
 	Reset()
-	FetchEntity(Exposable) *Error
-	SaveEntity(Exposable) *Error
-	DeleteEntity(Exposable) *Error
-	FetchChildren(Exposable, Identity, interface{}, *FetchingInfo) *Error
-	CreateChild(Exposable, Exposable) *Error
-	AssignChildren(Exposable, interface{}, Identity) *Error
+	FetchEntity(Identifiable) *Error
+	SaveEntity(Identifiable) *Error
+	DeleteEntity(Identifiable) *Error
+	FetchChildren(Identifiable, Identity, interface{}, *FetchingInfo) *Error
+	CreateChild(Identifiable, Identifiable) *Error
+	AssignChildren(Identifiable, interface{}, Identity) *Error
 	NextEvent(NotificationsChannel, *string)
 	Root() Rootable
 }
@@ -185,7 +185,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 	}
 }
 
-func (s *Session) getGeneralURL(o Exposable) string {
+func (s *Session) getGeneralURL(o Identifiable) string {
 
 	if o.Identity().ResourceName == "" {
 		panic("Cannot GetGeneralURL of that as no ResourceName in its Identity")
@@ -194,7 +194,7 @@ func (s *Session) getGeneralURL(o Exposable) string {
 	return s.URL + "/" + o.Identity().ResourceName
 }
 
-func (s *Session) getPersonalURL(o Exposable) string {
+func (s *Session) getPersonalURL(o Identifiable) string {
 
 	if _, ok := o.(Rootable); ok {
 		return s.URL + "/" + o.Identity().RESTName
@@ -207,7 +207,7 @@ func (s *Session) getPersonalURL(o Exposable) string {
 	return s.getGeneralURL(o) + "/" + o.Identifier()
 }
 
-func (s *Session) getURLForChildrenIdentity(o Exposable, childrenIdentity Identity) string {
+func (s *Session) getURLForChildrenIdentity(o Identifiable, childrenIdentity Identity) string {
 
 	if _, ok := o.(Rootable); ok {
 		return s.URL + "/" + childrenIdentity.ResourceName
@@ -246,9 +246,9 @@ func (s *Session) Reset() {
 	_currentSession = nil
 }
 
-// FetchEntity fetchs the given Exposable from the server.
+// FetchEntity fetchs the given Identifiable from the server.
 // You should not use this function by yourself.
-func (s *Session) FetchEntity(object Exposable) *Error {
+func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	request, _ := http.NewRequest("GET", s.getPersonalURL(object), nil)
 	response, err1 := s.send(request, nil)
@@ -273,9 +273,9 @@ func (s *Session) FetchEntity(object Exposable) *Error {
 	return nil
 }
 
-// SaveEntity saves the given Exposable into the server.
+// SaveEntity saves the given Identifiable into the server.
 // You should not use this function by yourself.
-func (s *Session) SaveEntity(object Exposable) *Error {
+func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	data, _ := json.Marshal(object)
 	request, _ := http.NewRequest("PUT", s.getPersonalURL(object), bytes.NewBuffer(data))
@@ -304,9 +304,9 @@ func (s *Session) SaveEntity(object Exposable) *Error {
 	return nil
 }
 
-// DeleteEntity deletes the given Exposable from the server.
+// DeleteEntity deletes the given Identifiable from the server.
 // You should not use this function by yourself.
-func (s *Session) DeleteEntity(object Exposable) *Error {
+func (s *Session) DeleteEntity(object Identifiable) *Error {
 
 	request, _ := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
 	_, error := s.send(request, nil)
@@ -321,7 +321,7 @@ func (s *Session) DeleteEntity(object Exposable) *Error {
 
 // FetchChildren fetches the children with of given parent identified by the given identify.
 // You should not use this function by yourself.
-func (s *Session) FetchChildren(parent Exposable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
+func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
 	request, _ := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
 	response, err1 := s.send(request, nil)
@@ -351,9 +351,9 @@ func (s *Session) FetchChildren(parent Exposable, identity Identity, dest interf
 	return nil
 }
 
-// CreateChild creates a new child Exposable under the given parent Exposable in the server.
+// CreateChild creates a new child Identifiable under the given parent Identifiable in the server.
 // You should not use this function by yourself.
-func (s *Session) CreateChild(parent Exposable, child Exposable) *Error {
+func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	data, _ := json.Marshal(child)
 	request, _ := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.Identity()), bytes.NewBuffer(data))
@@ -379,9 +379,9 @@ func (s *Session) CreateChild(parent Exposable, child Exposable) *Error {
 	return nil
 }
 
-// AssignChildren assigns the list of given child Exposables to the given Exposable parent in the server.
+// AssignChildren assigns the list of given child Identifiables to the given Identifiable parent in the server.
 // You should not use this function by yourself.
-func (s *Session) AssignChildren(parent Exposable, children interface{}, identity Identity) *Error {
+func (s *Session) AssignChildren(parent Identifiable, children interface{}, identity Identity) *Error {
 
 	var ids []string
 

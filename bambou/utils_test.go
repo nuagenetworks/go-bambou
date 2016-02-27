@@ -9,11 +9,7 @@ package bambou
 var fakeIdentity = Identity{"fake", "fakes"}
 
 type fakeObjectsList []*fakeObject
-type fakeObject struct{ ExposedObject }
-
-func (o *fakeObject) Save() *Error   { return nil }
-func (o *fakeObject) Delete() *Error { return nil }
-func (o *fakeObject) Fetch() *Error  { return nil }
+type fakeObject struct{ RemoteObject }
 
 /*
    Fake Rootable

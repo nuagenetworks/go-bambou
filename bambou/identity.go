@@ -28,10 +28,17 @@ import (
 	"reflect"
 )
 
-// AllIdentity represents all possible Identities.
-var AllIdentity = Identity{
-	RESTName:     "__all__",
-	ResourceName: "__all__",
+// IdentifiablesList is a list of objects implementing the Identifiable interface.
+type IdentifiablesList []Identifiable
+
+// Identifiable is the interface that object which have Identity
+// must implement.
+type Identifiable interface {
+	Identity() Identity
+	SetIdentity(Identity)
+
+	Identifier() string
+	SetIdentifier(string)
 }
 
 // Identity is a structure that contains the necessary information about an Identifiable.
@@ -48,7 +55,7 @@ func (i Identity) String() string {
 	return fmt.Sprintf("<Identity %s|%s>", i.RESTName, i.ResourceName)
 }
 
-// identify applies the given Identity to a list of Exposables.
+// identify applies the given Identity to a list of Identifiable.
 func identify(list interface{}, identity Identity) {
 
 	il := []reflect.Value{reflect.ValueOf(identity)}
@@ -56,4 +63,10 @@ func identify(list interface{}, identity Identity) {
 	for i := 0; i < reflect.ValueOf(list).Elem().Len(); i++ {
 		reflect.ValueOf(list).Elem().Index(i).MethodByName("SetIdentity").Call(il)
 	}
+}
+
+// AllIdentity represents all possible Identities.
+var AllIdentity = Identity{
+	RESTName:     "__all__",
+	ResourceName: "__all__",
 }

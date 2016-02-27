@@ -27,70 +27,53 @@ import (
 	"fmt"
 )
 
-// ExposablesList is a list of objects implementing the Exposable interface.
-type ExposablesList []Exposable
-
-// Exposable is the interface of objects that can be retrieved and sent to the server.
-// An Exposable implements the Identifiable and Operationable interfaces.
-type Exposable interface {
-	Identity() Identity
-	SetIdentity(Identity)
-
-	Identifier() string
-	SetIdentifier(string)
-
-	Fetch() *Error
-	Save() *Error
-	Delete() *Error
-}
-
 // Rootable is the interface that must be implemented by the root object of the API.
-// A Rootable also implements the Exposable. Rootable
+// A Rootable also implements the Identifiable interface.
 type Rootable interface {
-	Exposable
+	Identifiable
 
 	APIKey() string
 	SetAPIKey(string)
 }
 
-// ExposedObject represents an object than contains information common to all objects.
+// RemoteObject represents an object than contains information common to all objects.
 // exposed by the server.
 // This struct must be embedded into all objects that are available
 // throught the ReST api.
-type ExposedObject struct {
-	ID         string   `json:"ID,omitempty"`
-	ParentID   string   `json:"parentID,omitempty"`
-	ParentType string   `json:"parentType,omitempty"`
-	Owner      string   `json:"owner,omitempty"`
-	identity   Identity `json:"-"`
+type RemoteObject struct {
+	ID         string `json:"ID,omitempty"`
+	ParentID   string `json:"parentID,omitempty"`
+	ParentType string `json:"parentType,omitempty"`
+	Owner      string `json:"owner,omitempty"`
+	identity   Identity
 }
 
 // Identity returns the object's Identity.
-func (o *ExposedObject) Identity() Identity {
+func (o *RemoteObject) Identity() Identity {
 
 	return o.identity
 }
 
 // SetIdentity sets the Identity of the object.
-func (o *ExposedObject) SetIdentity(identity Identity) {
+func (o *RemoteObject) SetIdentity(identity Identity) {
 
 	o.identity = identity
 }
 
 // Identifier returns the object's ID.
-func (o *ExposedObject) Identifier() string {
+func (o *RemoteObject) Identifier() string {
 
 	return o.ID
 }
 
-// SetID sets the ID of the obje.
-func (o *ExposedObject) SetIdentifier(ID string) {
+// SetIdentifier sets the ID of the obje.
+func (o *RemoteObject) SetIdentifier(ID string) {
 
 	o.ID = ID
 }
 
 // String returns the string representation of the object.
-func (o *ExposedObject) String() string {
+func (o *RemoteObject) String() string {
 
 	return fmt.Sprintf("<ExposedObject %s:%s>", o.identity.RESTName, o.ID)
 }
