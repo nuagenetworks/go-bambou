@@ -9,7 +9,10 @@ package bambou
 var fakeIdentity = Identity{"fake", "fakes"}
 
 type fakeObjectsList []*fakeObject
-type fakeObject struct{ RemoteObject }
+type fakeObject struct {
+	RemoteObject
+	Name string `json:"name"`
+}
 
 /*
    Fake Rootable

@@ -32,7 +32,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -54,7 +53,7 @@ type Operationable interface {
 	DeleteEntity(Identifiable) *Error
 	FetchChildren(Identifiable, Identity, interface{}, *FetchingInfo) *Error
 	CreateChild(Identifiable, Identifiable) *Error
-	AssignChildren(Identifiable, interface{}, Identity) *Error
+	AssignChildren(Identifiable, []Identifiable, Identity) *Error
 	NextEvent(NotificationsChannel, *string)
 	Root() Rootable
 }
@@ -381,17 +380,12 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 // AssignChildren assigns the list of given child Identifiables to the given Identifiable parent in the server.
 // You should not use this function by yourself.
-func (s *Session) AssignChildren(parent Identifiable, children interface{}, identity Identity) *Error {
+func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, identity Identity) *Error {
 
 	var ids []string
 
-	if children != nil {
-		l := reflect.ValueOf(children).Len()
-		for i := 0; i < l; i++ {
-			o := reflect.ValueOf(children).Index(i).Elem()
-			identityField := o.FieldByName("ID")
-			ids = append(ids, identityField.String())
-		}
+	for _, c := range children {
+		ids = append(ids, c.Identifier())
 	}
 
 	data, _ := json.Marshal(&ids)

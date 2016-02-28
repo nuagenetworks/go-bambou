@@ -581,7 +581,7 @@ func TestSession_FetchChildren(t *testing.T) {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				fmt.Fprint(w, `[{"ID": "1"}, {"ID": "2"}]`)
+				fmt.Fprint(w, `[{"ID": "1", "name": "name1"}, {"ID": "2", "name": "name2"}]`)
 			}))
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
@@ -593,12 +593,14 @@ func TestSession_FetchChildren(t *testing.T) {
 				So(len(l), ShouldEqual, 2)
 			})
 
-			Convey("Then the first child ID should be 1", func() {
+			Convey("Then the first child ID should be 1 and Name name1", func() {
 				So(l[0].Identifier(), ShouldEqual, "1")
+				So(l[0].Name, ShouldEqual, "name1")
 			})
 
-			Convey("Then the second child ID should be 2", func() {
+			Convey("Then the second child ID should be 2 Name name1", func() {
 				So(l[1].Identifier(), ShouldEqual, "2")
+				So(l[1].Name, ShouldEqual, "name2")
 			})
 		})
 
@@ -761,7 +763,7 @@ func TestSession_AssignChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			l := fakeObjectsList{c}
+			l := []Identifiable{c}
 			session.AssignChildren(e, l, fakeIdentity)
 
 			Convey("Then nothing special should happen", func() {
@@ -776,7 +778,7 @@ func TestSession_AssignChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			l := fakeObjectsList{c}
+			l := []Identifiable{c}
 			err := session.AssignChildren(e, l, fakeIdentity)
 
 			Convey("Then err should not be nil", func() {
