@@ -246,7 +246,6 @@ func (s *Session) Reset() {
 }
 
 // FetchEntity fetchs the given Identifiable from the server.
-// You should not use this function by yourself.
 func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	request, _ := http.NewRequest("GET", s.getPersonalURL(object), nil)
@@ -273,7 +272,6 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 }
 
 // SaveEntity saves the given Identifiable into the server.
-// You should not use this function by yourself.
 func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	data, _ := json.Marshal(object)
@@ -304,7 +302,6 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 }
 
 // DeleteEntity deletes the given Identifiable from the server.
-// You should not use this function by yourself.
 func (s *Session) DeleteEntity(object Identifiable) *Error {
 
 	request, _ := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
@@ -318,8 +315,7 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 	return nil
 }
 
-// FetchChildren fetches the children with of given parent identified by the given identify.
-// You should not use this function by yourself.
+// FetchChildren fetches the children with of given parent identified by the given Identity.
 func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
 	request, _ := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
@@ -351,7 +347,6 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 }
 
 // CreateChild creates a new child Identifiable under the given parent Identifiable in the server.
-// You should not use this function by yourself.
 func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	data, _ := json.Marshal(child)
@@ -379,7 +374,6 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 }
 
 // AssignChildren assigns the list of given child Identifiables to the given Identifiable parent in the server.
-// You should not use this function by yourself.
 func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, identity Identity) *Error {
 
 	var ids []string
