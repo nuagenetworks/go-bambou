@@ -40,8 +40,7 @@ func TestSession_NewSession(t *testing.T) {
 
 	Convey("When I create a new Session", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
@@ -74,8 +73,7 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		Convey("When I prepare the Authorization with a session that doesn't have an APIKey", func() {
 
@@ -120,8 +118,7 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 func TestSession_prepareHeaders(t *testing.T) {
 
-	r := &fakeRootObject{}
-	r.SetIdentity(fakeRootIdentity)
+	r := NewFakeRootObject()
 
 	session := NewSession("username", "password", "organization", "http://fake.com", r)
 
@@ -253,8 +250,7 @@ func TestSession_URI(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 		r.SetIdentifier("yyy")
 
 		s := NewSession("username", "password", "organization", "http://url.com", r)
@@ -269,16 +265,14 @@ func TestSession_URI(t *testing.T) {
 				So(s.getGeneralURL(r), ShouldEqual, "http://url.com/root")
 			})
 
-			Convey("Then URL of the children with fakeIdentity should be http://url.com/fakes", func() {
-				So(s.getURLForChildrenIdentity(r, fakeIdentity), ShouldEqual, "http://url.com/fakes")
+			Convey("Then URL of the children with FakeIdentity should be http://url.com/fakes", func() {
+				So(s.getURLForChildrenIdentity(r, FakeIdentity), ShouldEqual, "http://url.com/fakes")
 			})
 		})
 
 		Convey("When I check the URI of a standard object with an ID", func() {
 
-			e := &fakeObject{}
-			e.SetIdentity(fakeIdentity)
-			e.SetIdentifier("xxx")
+			e := NewFakeObject("xxx")
 
 			Convey("Then personal URL should be http://url.com/fakes/xxx", func() {
 				So(s.getPersonalURL(e), ShouldEqual, "http://url.com/fakes/xxx")
@@ -288,32 +282,17 @@ func TestSession_URI(t *testing.T) {
 				So(s.getGeneralURL(e), ShouldEqual, "http://url.com/fakes")
 			})
 
-			Convey("Then URL of the children with fakeRootIdentity should be http://url.com/fakes/xxx/root", func() {
-				So(s.getURLForChildrenIdentity(e, fakeRootIdentity), ShouldEqual, "http://url.com/fakes/xxx/root")
+			Convey("Then URL of the children with FakeRootIdentity should be http://url.com/fakes/xxx/root", func() {
+				So(s.getURLForChildrenIdentity(e, FakeRootIdentity), ShouldEqual, "http://url.com/fakes/xxx/root")
 			})
 		})
 
 		Convey("When I check the URI of a standard object without an ID", func() {
 
-			e := &fakeObject{}
-			e.SetIdentity(fakeIdentity)
+			e := NewFakeObject("")
 
 			Convey("Then getting general URL should not panic", func() {
 				So(func() { s.getGeneralURL(e) }, ShouldNotPanic)
-			})
-
-			Convey("Then getting the personal URL should panic", func() {
-				So(func() { s.getPersonalURL(e) }, ShouldPanic)
-			})
-		})
-
-		Convey("When I check the URI of an object without an Identity", func() {
-
-			e := &fakeObject{}
-			e.SetIdentifier("xxx")
-
-			Convey("Then getting general URL should panic", func() {
-				So(func() { s.getGeneralURL(e) }, ShouldPanic)
 			})
 
 			Convey("Then getting the personal URL should panic", func() {
@@ -330,8 +309,7 @@ func TestSession_StartStopSession(t *testing.T) {
 
 	Convey("GivenI create a new session", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprint(w, `[{"ID": "xxx", "APIKey": "api-key"}]`)
@@ -369,8 +347,7 @@ func TestSession_StartStopSession(t *testing.T) {
 
 	Convey("When I start the session and I cannot get the root object", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "woops", 500)
@@ -388,32 +365,25 @@ func TestSession_StartStopSession(t *testing.T) {
 
 func TestSession_FetchEntity(t *testing.T) {
 
-	r := &fakeRootObject{}
-	r.SetIdentity(fakeRootIdentity)
+	r := NewFakeRootObject()
 
 	Convey("Given I create a new session", t, func() {
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprint(w, `[{"ID": "xxx", "parentType": "pedro", "parentID": "yyy"}]`)
+			fmt.Fprint(w, `[{"ID": "xxx", "name": "pedro"}]`)
 		}))
 		defer ts.Close()
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("xxx")
+		e := NewFakeObject("xxx")
 
 		Convey("When I fetch an entity with success", func() {
 
 			session.FetchEntity(e)
 
-			Convey("Then parentType should pedro", func() {
-				So(e.ParentType, ShouldEqual, "pedro")
-			})
-
-			Convey("Then parentID should yyy", func() {
-				So(e.ParentID, ShouldEqual, "yyy")
+			Convey("Then Name should pedro", func() {
+				So(e.Name, ShouldEqual, "pedro")
 			})
 		})
 
@@ -453,12 +423,8 @@ func TestSession_SaveEntity(t *testing.T) {
 
 	Convey("Given I create a new object", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
-
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("yyy")
+		r := NewFakeRootObject()
+		e := NewFakeObject("yyy")
 
 		Convey("When I save it with success", func() {
 
@@ -525,26 +491,22 @@ func TestSession_DeleteEntity(t *testing.T) {
 
 	Convey("Given I have an existing object", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
-
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("yyy")
+		r := NewFakeRootObject()
+		e := NewFakeObject("xxx")
 
 		Convey("When I delete it with success", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
-				fmt.Fprint(w, `[{"ID": "zzz", "parentType": "pedro", "parentID": "yyy"}]`)
+				fmt.Fprint(w, `[{"ID": "xxx"}]`)
 			}))
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
 			session.DeleteEntity(e)
 
-			Convey("Then ID should 'yyy'", func() {
-				So(e.Identifier(), ShouldEqual, "yyy")
+			Convey("Then ID should 'xxx'", func() {
+				So(e.Identifier(), ShouldEqual, "xxx")
 			})
 		})
 
@@ -570,12 +532,8 @@ func TestSession_FetchChildren(t *testing.T) {
 
 	Convey("Given I have an existing object", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
-
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("yyy")
+		r := NewFakeRootObject()
+		e := NewFakeObject("xxx")
 
 		Convey("When I fetch its children with success", func() {
 
@@ -586,8 +544,8 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var l fakeObjectsList
-			session.FetchChildren(e, fakeIdentity, &l, nil)
+			var l FakeObjectsList
+			session.FetchChildren(e, FakeIdentity, &l, nil)
 
 			Convey("Then the lenght of the children list should be 2", func() {
 				So(len(l), ShouldEqual, 2)
@@ -603,9 +561,9 @@ func TestSession_FetchChildren(t *testing.T) {
 				So(l[1].Name, ShouldEqual, "name2")
 			})
 
-			Convey("Then the identity of the children should be fakeIdentity", func() {
-				So(l[0].Identity(), ShouldResemble, fakeIdentity)
-				So(l[1].Identity(), ShouldResemble, fakeIdentity)
+			Convey("Then the identity of the children should be FakeIdentity", func() {
+				So(l[0].Identity(), ShouldResemble, FakeIdentity)
+				So(l[1].Identity(), ShouldResemble, FakeIdentity)
 			})
 		})
 
@@ -617,8 +575,8 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var l fakeObjectsList
-			session.FetchChildren(e, fakeIdentity, &l, nil)
+			var l FakeObjectsList
+			session.FetchChildren(e, FakeIdentity, &l, nil)
 
 			Convey("Then the lenght of the children list should be 0", func() {
 				So(l, ShouldBeNil)
@@ -635,8 +593,8 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var l fakeObjectsList
-			session.FetchChildren(e, fakeIdentity, &l, nil)
+			var l FakeObjectsList
+			session.FetchChildren(e, FakeIdentity, &l, nil)
 
 			Convey("Then the lenght of the children list should be 0", func() {
 				So(len(l), ShouldEqual, 0)
@@ -652,8 +610,8 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var l fakeObjectsList
-			err := session.FetchChildren(e, fakeIdentity, &l, nil)
+			var l FakeObjectsList
+			err := session.FetchChildren(e, FakeIdentity, &l, nil)
 
 			Convey("Then err should not be nil", func() {
 				So(err, ShouldNotBeNil)
@@ -669,10 +627,10 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			var l fakeObjectsList
+			var l FakeObjectsList
 
 			Convey("Then it should panic", func() {
-				So(func() { session.FetchChildren(e, fakeIdentity, &l, nil) }, ShouldPanic)
+				So(func() { session.FetchChildren(e, FakeIdentity, &l, nil) }, ShouldPanic)
 			})
 		})
 	})
@@ -682,12 +640,8 @@ func TestSession_CreateChild(t *testing.T) {
 
 	Convey("Given I have an existing object", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
-
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("xxx")
+		r := NewFakeRootObject()
+		e := NewFakeObject("xxx")
 
 		Convey("When I create a child with success", func() {
 
@@ -699,8 +653,8 @@ func TestSession_CreateChild(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			c := &fakeObject{}
-			c.SetIdentity(fakeIdentity)
+			c := NewFakeObject("")
+
 			session.CreateChild(e, c)
 
 			Convey("Then ID of the new children should be zzz", func() {
@@ -716,8 +670,7 @@ func TestSession_CreateChild(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			c := &fakeObject{}
-			c.SetIdentity(fakeIdentity)
+			c := NewFakeObject("")
 			err := session.CreateChild(e, c)
 
 			Convey("Then error should not be nil", func() {
@@ -735,8 +688,7 @@ func TestSession_CreateChild(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			c := &fakeObject{}
-			c.SetIdentity(fakeIdentity)
+			c := NewFakeObject("")
 
 			Convey("Then it should panic", func() {
 				So(func() { session.CreateChild(e, c) }, ShouldPanic)
@@ -749,16 +701,9 @@ func TestSession_AssignChildren(t *testing.T) {
 
 	Convey("Given I have two existing objects", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
-
-		e := &fakeObject{}
-		e.SetIdentity(fakeIdentity)
-		e.SetIdentifier("xxx")
-
-		c := &fakeObject{}
-		c.SetIdentity(fakeIdentity)
-		c.SetIdentifier("yyy")
+		r := NewFakeRootObject()
+		e := NewFakeObject("xxx")
+		c := NewFakeObject("yyy")
 
 		Convey("When I assign them with success", func() {
 
@@ -769,7 +714,7 @@ func TestSession_AssignChildren(t *testing.T) {
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
 			l := []Identifiable{c}
-			session.AssignChildren(e, l, fakeIdentity)
+			session.AssignChildren(e, l, FakeIdentity)
 
 			Convey("Then nothing special should happen", func() {
 			})
@@ -784,7 +729,7 @@ func TestSession_AssignChildren(t *testing.T) {
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
 			l := []Identifiable{c}
-			err := session.AssignChildren(e, l, fakeIdentity)
+			err := session.AssignChildren(e, l, FakeIdentity)
 
 			Convey("Then err should not be nil", func() {
 				So(err, ShouldNotBeNil)
@@ -806,8 +751,7 @@ func TestSession_NextEvent(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
@@ -838,8 +782,7 @@ func TestSession_NextEvent(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
@@ -870,8 +813,7 @@ func TestSession_NextEvent(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
@@ -902,8 +844,7 @@ func TestSession_Send(t *testing.T) {
 
 	Convey("Given I am authenticated", t, func() {
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		Convey("When I send a request that returns OK", func() {
 

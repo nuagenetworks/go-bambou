@@ -23,10 +23,7 @@
 
 package bambou
 
-import (
-	"fmt"
-	"reflect"
-)
+import "fmt"
 
 // IdentifiablesList is a list of objects implementing the Identifiable interface.
 type IdentifiablesList []Identifiable
@@ -34,39 +31,46 @@ type IdentifiablesList []Identifiable
 // Identifiable is the interface that object which have Identity
 // must implement.
 type Identifiable interface {
-	Identity() Identity
-	SetIdentity(Identity)
 
+	// Identity returns the Identity of the of the receiver.
+	Identity() Identity
+
+	// Identifier returns the unique identifier of the of the receiver.
 	Identifier() string
+
+	// SetIdentifier sets the unique identifier of the of the receiver.
 	SetIdentifier(string)
 }
 
+// Rootable is the interface that must be implemented by the root object of the API.
+// A Rootable also implements the Identifiable interface.
+type Rootable interface {
+	Identifiable
+
+	// APIKey returns the token that will be used to authentify the communication
+	// between a Storer and the backend.
+	APIKey() string
+
+	// SetAPIKey sets the token used by the Storer.
+	SetAPIKey(string)
+}
+
 // Identity is a structure that contains the necessary information about an Identifiable.
-// The RESTName is usually the singular form of the ResourceName.
+// The Name is usually the singular form of the Category.
 // For instance, "enterprise" and "enterprises".
 type Identity struct {
-	RESTName     string
-	ResourceName string
+	Name     string
+	Category string
 }
 
 // String returns the string representation of the identity.
 func (i Identity) String() string {
 
-	return fmt.Sprintf("<Identity %s|%s>", i.RESTName, i.ResourceName)
-}
-
-// identify applies the given Identity to a list of Identifiable.
-func identify(list interface{}, identity Identity) {
-
-	il := []reflect.Value{reflect.ValueOf(identity)}
-
-	for i := 0; i < reflect.ValueOf(list).Elem().Len(); i++ {
-		reflect.ValueOf(list).Elem().Index(i).MethodByName("SetIdentity").Call(il)
-	}
+	return fmt.Sprintf("<Identity %s|%s>", i.Name, i.Category)
 }
 
 // AllIdentity represents all possible Identities.
 var AllIdentity = Identity{
-	RESTName:     "__all__",
-	ResourceName: "__all__",
+	Name:     "__all__",
+	Category: "__all__",
 }

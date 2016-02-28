@@ -36,18 +36,21 @@ import (
 	"strings"
 )
 
-var _currentSession Operationable
+var _currentSession Storer
 
 // CurrentSession returns the current active and authenticated Session.
-func CurrentSession() Operationable {
+func CurrentSession() Storer {
 
 	return _currentSession
 }
 
-// Operationable is the the interface that any kind of session must implement
-type Operationable interface {
+// Storer is the interface that must be implemented by object that can
+// perform CRUD operations on RemoteObjects.
+type Storer interface {
 	Start() *Error
 	Reset()
+	Root() Rootable
+
 	FetchEntity(Identifiable) *Error
 	SaveEntity(Identifiable) *Error
 	DeleteEntity(Identifiable) *Error
@@ -55,7 +58,6 @@ type Operationable interface {
 	CreateChild(Identifiable, Identifiable) *Error
 	AssignChildren(Identifiable, []Identifiable, Identity) *Error
 	NextEvent(NotificationsChannel, *string)
-	Root() Rootable
 }
 
 // Session represents a user session. It provides the entire
@@ -186,17 +188,13 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 
 func (s *Session) getGeneralURL(o Identifiable) string {
 
-	if o.Identity().ResourceName == "" {
-		panic("Cannot GetGeneralURL of that as no ResourceName in its Identity")
-	}
-
-	return s.URL + "/" + o.Identity().ResourceName
+	return s.URL + "/" + o.Identity().Category
 }
 
 func (s *Session) getPersonalURL(o Identifiable) string {
 
 	if _, ok := o.(Rootable); ok {
-		return s.URL + "/" + o.Identity().RESTName
+		return s.URL + "/" + o.Identity().Name
 	}
 
 	if o.Identifier() == "" {
@@ -209,10 +207,10 @@ func (s *Session) getPersonalURL(o Identifiable) string {
 func (s *Session) getURLForChildrenIdentity(o Identifiable, childrenIdentity Identity) string {
 
 	if _, ok := o.(Rootable); ok {
-		return s.URL + "/" + childrenIdentity.ResourceName
+		return s.URL + "/" + childrenIdentity.Category
 	}
 
-	return s.getPersonalURL(o) + "/" + childrenIdentity.ResourceName
+	return s.getPersonalURL(o) + "/" + childrenIdentity.Category
 }
 
 // Root returns the Root API object.
@@ -340,8 +338,6 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	if err2 != io.EOF && err2 != nil {
 		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
 	}
-
-	identify(dest, identity)
 
 	return nil
 }

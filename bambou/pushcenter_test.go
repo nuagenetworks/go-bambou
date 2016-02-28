@@ -64,10 +64,10 @@ func TestPushCenter_HandlersRegistration(t *testing.T) {
 		h := func(*Event) {}
 
 		Convey("When I register the handler for an identity", func() {
-			p.RegisterHandlerForIdentity(h, fakeIdentity)
+			p.RegisterHandlerForIdentity(h, FakeIdentity)
 
 			Convey("Then it should be registered in the list for that identity", func() {
-				So(p.HasHandlerForIdentity(fakeIdentity), ShouldBeTrue)
+				So(p.HasHandlerForIdentity(FakeIdentity), ShouldBeTrue)
 			})
 
 			Convey("Then the default handler should be nil", func() {
@@ -76,10 +76,10 @@ func TestPushCenter_HandlersRegistration(t *testing.T) {
 
 			Convey("When I unregister the handler for that identity", func() {
 
-				p.UnregisterHandlerForIdentity(fakeIdentity)
+				p.UnregisterHandlerForIdentity(FakeIdentity)
 
 				Convey("Then it should not be registered in the list anymore", func() {
-					So(p.HasHandlerForIdentity(fakeIdentity), ShouldBeFalse)
+					So(p.HasHandlerForIdentity(FakeIdentity), ShouldBeFalse)
 				})
 
 				Convey("Then the default handler should be nil", func() {
@@ -138,8 +138,7 @@ func TestPushCenter_Start(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
@@ -147,7 +146,7 @@ func TestPushCenter_Start(t *testing.T) {
 		h1 := func(e *Event) { n = append(n, e) }
 		h2 := func(e *Event) { n = append(n, e) }
 		p.RegisterHandlerForIdentity(h1, AllIdentity)
-		p.RegisterHandlerForIdentity(h2, fakeIdentity)
+		p.RegisterHandlerForIdentity(h2, FakeIdentity)
 
 		Convey("When I start the push center and receive the notifications", func() {
 
@@ -176,8 +175,7 @@ func TestPushCenter_Stop(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		r := &fakeRootObject{}
-		r.SetIdentity(fakeRootIdentity)
+		r := NewFakeRootObject()
 
 		session := NewSession("username", "password", "organization", ts.URL, r)
 

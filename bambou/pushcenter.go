@@ -66,34 +66,34 @@ func NewPushCenter(session *Session) *PushCenter {
 // the previous handler will be silently overwriten.
 func (p *PushCenter) RegisterHandlerForIdentity(handler EventHandler, identity Identity) {
 
-	if identity.RESTName == AllIdentity.RESTName {
+	if identity.Name == AllIdentity.Name {
 		p.defaultHander = handler
 		return
 	}
 
-	p.handlers[identity.RESTName] = handler
+	p.handlers[identity.Name] = handler
 }
 
 // UnregisterHandlerForIdentity unegisters the given EventHandler for the given Entity Identity.
 func (p *PushCenter) UnregisterHandlerForIdentity(identity Identity) {
 
-	if identity.RESTName == AllIdentity.RESTName {
+	if identity.Name == AllIdentity.Name {
 		p.defaultHander = nil
 		return
 	}
 
-	if _, exists := p.handlers[identity.RESTName]; exists {
-		delete(p.handlers, identity.RESTName)
+	if _, exists := p.handlers[identity.Name]; exists {
+		delete(p.handlers, identity.Name)
 	}
 }
 
 // HasHandlerForIdentity verifies if the given identity has a registered handler.
 func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 
-	if identity.RESTName == AllIdentity.RESTName {
+	if identity.Name == AllIdentity.Name {
 		return p.defaultHander != nil
 	}
-	_, exists := p.handlers[identity.RESTName]
+	_, exists := p.handlers[identity.Name]
 	return exists
 }
 
@@ -106,14 +106,10 @@ func (p *PushCenter) Start() {
 	go func() {
 		for {
 			go p.session.NextEvent(p.Channel, &p.lastEventID)
-
 			select {
 			case notification := <-p.Channel:
-
 				for _, event := range notification.Events {
-
 					event.Data, _ = json.Marshal(event.DataMap[0])
-
 					if p.defaultHander != nil {
 						p.defaultHander(event)
 					}
