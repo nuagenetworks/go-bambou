@@ -602,6 +602,11 @@ func TestSession_FetchChildren(t *testing.T) {
 				So(l[1].Identifier(), ShouldEqual, "2")
 				So(l[1].Name, ShouldEqual, "name2")
 			})
+
+			Convey("Then the identity of the children should be fakeIdentity", func() {
+				So(l[0].Identity(), ShouldResemble, fakeIdentity)
+				So(l[1].Identity(), ShouldResemble, fakeIdentity)
+			})
 		})
 
 		Convey("When I fetch its children while there is no data", func() {
