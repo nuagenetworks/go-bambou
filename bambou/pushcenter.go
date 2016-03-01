@@ -23,7 +23,10 @@
 
 package bambou
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"errors"
+)
 
 // NotificationsChannel is used to received notification from the session
 type NotificationsChannel chan *Notification
@@ -97,10 +100,10 @@ func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 }
 
 // Start starts the Push Center.
-func (p *PushCenter) Start() *Error {
+func (p *PushCenter) Start() error {
 
 	if p.isRunning {
-		return NewError(0, "the push center is already started")
+		return errors.New("the push center is already started")
 	}
 
 	p.isRunning = true
@@ -131,10 +134,10 @@ func (p *PushCenter) Start() *Error {
 }
 
 // Stop stops a running PushCenter.
-func (p *PushCenter) Stop() *Error {
+func (p *PushCenter) Stop() error {
 
 	if !p.isRunning {
-		return NewError(0, "the push center is not started")
+		return errors.New("the push center is not started")
 	}
 
 	p.stop <- true
