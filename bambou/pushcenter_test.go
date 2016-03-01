@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"testing"
 	"time"
 
@@ -118,7 +119,14 @@ func TestPushCenter_Start(t *testing.T) {
 
 	Convey("Given I create a new PushCenter and resgister a handler", t, func() {
 
-		n := make(EventsList, 0)
+		type notifList struct {
+			notifications EventsList
+			lock          sync.Mutex
+		}
+
+		n := notifList{
+			notifications: make(EventsList, 0),
+		}
 		c := 0
 
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -143,8 +151,16 @@ func TestPushCenter_Start(t *testing.T) {
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
 		p := NewPushCenter(session)
-		h1 := func(e *Event) { n = append(n, e) }
-		h2 := func(e *Event) { n = append(n, e) }
+		h1 := func(e *Event) {
+			n.lock.Lock()
+			n.notifications = append(n.notifications, e)
+			n.lock.Unlock()
+		}
+		h2 := func(e *Event) {
+			n.lock.Lock()
+			n.notifications = append(n.notifications, e)
+			n.lock.Unlock()
+		}
 		p.RegisterHandlerForIdentity(h1, AllIdentity)
 		p.RegisterHandlerForIdentity(h2, FakeIdentity)
 
@@ -152,16 +168,18 @@ func TestPushCenter_Start(t *testing.T) {
 
 			p.Start()
 			time.Sleep(20 * time.Millisecond)
+			n.lock.Lock()
 
 			Convey("Then the number of notifications should be 3", func() {
-				So(len(n), ShouldEqual, 3)
+				So(len(n.notifications), ShouldEqual, 3)
 			})
 
 			Convey("Then events Data should be correct ", func() {
-				So(string(n[0].Data), ShouldEqual, `{"ID":"x"}`)
-				So(string(n[1].Data), ShouldEqual, `{"ID":"x"}`)
-				So(string(n[2].Data), ShouldEqual, `{"ID":"y"}`)
+				So(string(n.notifications[0].Data), ShouldEqual, `{"ID":"x"}`)
+				So(string(n.notifications[1].Data), ShouldEqual, `{"ID":"x"}`)
+				So(string(n.notifications[2].Data), ShouldEqual, `{"ID":"y"}`)
 			})
+			n.lock.Unlock()
 		})
 	})
 }
@@ -180,18 +198,36 @@ func TestPushCenter_Stop(t *testing.T) {
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
 		p := NewPushCenter(session)
-		p.Start()
+		err := p.Start()
+
+		Convey("Then the error should be nil", func() {
+			So(err, ShouldBeNil)
+		})
+
+		Convey("When I start it again", func() {
+
+			err = p.Start()
+
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
 
 		Convey("When I stop the push center", func() {
 
 			p.Stop()
 
-			Convey("Then isRunning should false", func() {
-				So(p.isRunning, ShouldBeFalse)
+			Convey("Then the error should be nil", func() {
+				So(err, ShouldBeNil)
 			})
 
-			Convey("Then lastEventID should empty", func() {
-				So(p.lastEventID, ShouldEqual, "")
+			Convey("When I stop it again", func() {
+
+				err = p.Stop()
+
+				Convey("Then the error should not be nil", func() {
+					So(err, ShouldNotBeNil)
+				})
 			})
 		})
 	})

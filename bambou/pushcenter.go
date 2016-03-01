@@ -44,7 +44,6 @@ type PushCenter struct {
 
 	handlers      eventHandlers
 	defaultHander EventHandler
-	lastEventID   string
 	stop          chan bool
 	session       *Session
 }
@@ -98,19 +97,23 @@ func (p *PushCenter) HasHandlerForIdentity(identity Identity) bool {
 }
 
 // Start starts the Push Center.
-func (p *PushCenter) Start() {
+func (p *PushCenter) Start() *Error {
+
+	if p.isRunning {
+		return NewError(0, "the push center is already started")
+	}
 
 	p.isRunning = true
-	p.lastEventID = ""
 
 	go func() {
+		lastEventID := ""
 		for {
-			go p.session.NextEvent(p.Channel, p.lastEventID)
+			go p.session.NextEvent(p.Channel, lastEventID)
 			select {
 			case notification := <-p.Channel:
 				for _, event := range notification.Events {
 					event.Data, _ = json.Marshal(event.DataMap[0])
-					p.lastEventID = notification.UUID
+					lastEventID = notification.UUID
 					if p.defaultHander != nil {
 						p.defaultHander(event)
 					}
@@ -123,12 +126,19 @@ func (p *PushCenter) Start() {
 			}
 		}
 	}()
+
+	return nil
 }
 
 // Stop stops a running PushCenter.
-func (p *PushCenter) Stop() {
+func (p *PushCenter) Stop() *Error {
 
-	p.isRunning = false
-	p.lastEventID = ""
+	if !p.isRunning {
+		return NewError(0, "the push center is not started")
+	}
+
 	p.stop <- true
+	p.isRunning = false
+
+	return nil
 }
