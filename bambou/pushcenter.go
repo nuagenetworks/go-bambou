@@ -105,11 +105,12 @@ func (p *PushCenter) Start() {
 
 	go func() {
 		for {
-			go p.session.NextEvent(p.Channel, &p.lastEventID)
+			go p.session.NextEvent(p.Channel, p.lastEventID)
 			select {
 			case notification := <-p.Channel:
 				for _, event := range notification.Events {
 					event.Data, _ = json.Marshal(event.DataMap[0])
+					p.lastEventID = notification.UUID
 					if p.defaultHander != nil {
 						p.defaultHander(event)
 					}

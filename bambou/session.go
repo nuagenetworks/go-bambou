@@ -57,7 +57,7 @@ type Storer interface {
 	FetchChildren(Identifiable, Identity, interface{}, *FetchingInfo) *Error
 	CreateChild(Identifiable, Identifiable) *Error
 	AssignChildren(Identifiable, []Identifiable, Identity) *Error
-	NextEvent(NotificationsChannel, *string)
+	NextEvent(NotificationsChannel, string)
 }
 
 // Session represents a user session. It provides the entire
@@ -392,12 +392,12 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 // NextEvent will return the next notification from the backend as it occurs and will
 // send it to the correct channel.
-func (s *Session) NextEvent(channel NotificationsChannel, lastEventID *string) {
+func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) {
 
 	currentURL := s.URL + "/events"
 
-	if *lastEventID != "" {
-		currentURL += "?uuid=" + *lastEventID
+	if lastEventID != "" {
+		currentURL += "?uuid=" + lastEventID
 	}
 
 	request, _ := http.NewRequest("GET", currentURL, nil)
@@ -416,8 +416,6 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID *string) {
 		Logger().Errorf("Error during push: %s", err2.Error())
 		return
 	}
-
-	*lastEventID = notification.UUID
 
 	if len(notification.Events) > 0 {
 		channel <- notification

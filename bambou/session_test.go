@@ -758,7 +758,7 @@ func TestSession_NextEvent(t *testing.T) {
 		lID := "x"
 		var notif *Notification
 		c := make(NotificationsChannel)
-		go session.NextEvent(c, &lID)
+		go session.NextEvent(c, lID)
 
 		select {
 		case notif = <-c:
@@ -770,7 +770,7 @@ func TestSession_NextEvent(t *testing.T) {
 		})
 
 		Convey("Then last Event ID should be y", func() {
-			So(lID, ShouldEqual, "y")
+			So(notif.UUID, ShouldEqual, "y")
 		})
 	})
 
@@ -789,7 +789,7 @@ func TestSession_NextEvent(t *testing.T) {
 		lID := "x"
 		var notif *Notification
 		c := make(NotificationsChannel)
-		go session.NextEvent(c, &lID)
+		go session.NextEvent(c, lID)
 
 		select {
 		case notif = <-c:
@@ -820,7 +820,7 @@ func TestSession_NextEvent(t *testing.T) {
 		lID := "x"
 		var notif *Notification
 		c := make(NotificationsChannel)
-		go session.NextEvent(c, &lID)
+		go session.NextEvent(c, lID)
 
 		select {
 		case notif = <-c:
