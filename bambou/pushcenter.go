@@ -24,6 +24,7 @@
 package bambou
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 )
@@ -115,11 +116,18 @@ func (p *PushCenter) Start() error {
 			select {
 			case notification := <-p.Channel:
 				for _, event := range notification.Events {
-					event.Data, _ = json.Marshal(event.DataMap[0])
+
+					buffer := &bytes.Buffer{}
+					if err := json.NewEncoder(buffer).Encode(event.DataMap[0]); err != nil {
+						continue
+					}
+					event.Data = buffer.Bytes()
+
 					lastEventID = notification.UUID
 					if p.defaultHander != nil {
 						p.defaultHander(event)
 					}
+
 					if handler, exists := p.handlers[event.EntityType]; exists {
 						handler(event)
 					}

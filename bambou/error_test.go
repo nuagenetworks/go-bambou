@@ -24,6 +24,7 @@
 package bambou
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 
@@ -63,8 +64,8 @@ func TestError_FromJSON(t *testing.T) {
 		e := NewError(42, "a big error")
 
 		Convey("When I unmarshal some data", func() {
-			d := "{\"property\": \"prop\", \"type\": \"iznogood\", \"descriptions\": [{\"title\": \"oula\", \"description\": \"pas bon\"}]}"
-			json.Unmarshal([]byte(d), e)
+			d := `{"property": "prop", "type": "iznogood", "descriptions": [{"title": "oula", "description": "pas bon"}]}`
+			json.NewDecoder(bytes.NewBuffer([]byte(d))).Decode(e)
 
 			Convey("Then the Message should be 'iznogood'", func() {
 				So(e.Message, ShouldEqual, "iznogood")

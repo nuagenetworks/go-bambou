@@ -410,10 +410,12 @@ func TestSession_FetchEntity(t *testing.T) {
 				fmt.Fprint(w, `not good at all`)
 			}))
 			defer ts.Close()
-			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			Convey("Then it should panic", func() {
-				So(func() { session.FetchEntity(e) }, ShouldPanic)
+			session := NewSession("username", "password", "organization", ts.URL, r)
+			err := session.FetchEntity(e)
+
+			Convey("The the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 	})
@@ -467,8 +469,9 @@ func TestSession_SaveEntity(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
-			Convey("Then it should panic", func() {
-				So(func() { session.SaveEntity(e) }, ShouldPanic)
+			err := session.SaveEntity(e)
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -628,9 +631,9 @@ func TestSession_FetchChildren(t *testing.T) {
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
 			var l FakeObjectsList
-
-			Convey("Then it should panic", func() {
-				So(func() { session.FetchChildren(e, FakeIdentity, &l, nil) }, ShouldPanic)
+			err := session.FetchChildren(e, FakeIdentity, &l, nil)
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 	})
@@ -689,9 +692,9 @@ func TestSession_CreateChild(t *testing.T) {
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
 			c := NewFakeObject("")
-
-			Convey("Then it should panic", func() {
-				So(func() { session.CreateChild(e, c) }, ShouldPanic)
+			err := session.CreateChild(e, c)
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 	})

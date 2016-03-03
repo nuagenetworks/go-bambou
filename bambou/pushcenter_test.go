@@ -24,6 +24,8 @@
 package bambou
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -138,7 +140,7 @@ func TestPushCenter_Start(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 				fmt.Fprint(w, `{"uuid": "y", "events": [{"type": "CREATE", "entityType": "notfake", "updateMechanism": "DEFAULT", "entities": [{"ID": "y"}]}]}`)
 			} else {
-				time.Sleep(2 * time.Second)
+				time.Sleep(1 * time.Second)
 				w.Header().Set("Content-Type", "application/json")
 				fmt.Fprint(w, `{"uuid": "z", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{"ID": "z"}]}]}`)
 			}
@@ -174,11 +176,28 @@ func TestPushCenter_Start(t *testing.T) {
 				So(len(n.notifications), ShouldEqual, 3)
 			})
 
-			Convey("Then events Data should be correct ", func() {
-				So(string(n.notifications[0].Data), ShouldEqual, `{"ID":"x"}`)
-				So(string(n.notifications[1].Data), ShouldEqual, `{"ID":"x"}`)
-				So(string(n.notifications[2].Data), ShouldEqual, `{"ID":"y"}`)
+			Convey("Then events Data should not be empty ", func() {
+				So(len(n.notifications[0].Data), ShouldBeGreaterThan, 0)
+				So(len(n.notifications[1].Data), ShouldBeGreaterThan, 0)
+				So(len(n.notifications[2].Data), ShouldBeGreaterThan, 0)
 			})
+
+			Convey("When I decode the data map", func() {
+
+				o1 := NewFakeObject("")
+				o2 := NewFakeObject("")
+				o3 := NewFakeObject("")
+				json.NewDecoder(bytes.NewBuffer([]byte(n.notifications[0].Data))).Decode(o1)
+				json.NewDecoder(bytes.NewBuffer([]byte(n.notifications[1].Data))).Decode(o2)
+				json.NewDecoder(bytes.NewBuffer([]byte(n.notifications[2].Data))).Decode(o3)
+
+				Convey("Then the ID of the decoded object should be correct ", func() {
+					So(o1.ID, ShouldEqual, "x")
+					So(o2.ID, ShouldEqual, "x")
+					So(o3.ID, ShouldEqual, "y")
+				})
+			})
+
 			n.lock.Unlock()
 		})
 	})

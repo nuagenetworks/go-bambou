@@ -28,9 +28,6 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -57,7 +54,7 @@ type Storer interface {
 	FetchChildren(Identifiable, Identity, interface{}, *FetchingInfo) *Error
 	CreateChild(Identifiable, Identifiable) *Error
 	AssignChildren(Identifiable, []Identifiable, Identity) *Error
-	NextEvent(NotificationsChannel, string)
+	NextEvent(NotificationsChannel, string) *Error
 }
 
 // Session represents a user session. It provides the entire
@@ -176,10 +173,11 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		return s.send(request, info)
 
 	case http.StatusConflict:
-		data, _ := ioutil.ReadAll(response.Body)
-		error := NewError(response.StatusCode, string(data))
-		json.Unmarshal(data, error)
-		return nil, error
+		berr := NewError(response.StatusCode, "")
+		if err := json.NewDecoder(response.Body).Decode(&berr); err != nil {
+			return nil, NewError(0, err.Error())
+		}
+		return nil, berr
 
 	default:
 		return nil, NewError(response.StatusCode, response.Status)
@@ -246,24 +244,21 @@ func (s *Session) Reset() {
 // FetchEntity fetchs the given Identifiable from the server.
 func (s *Session) FetchEntity(object Identifiable) *Error {
 
-	request, _ := http.NewRequest("GET", s.getPersonalURL(object), nil)
-	response, err1 := s.send(request, nil)
-
-	if response != nil {
-		defer response.Body.Close()
+	request, err := http.NewRequest("GET", s.getPersonalURL(object), nil)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	if err1 != nil {
-		Logger().Errorf("Error during FetchEntity: %s", err1.Error())
-		return err1
+	response, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
 	}
 
-	data, _ := ioutil.ReadAll(response.Body)
-	data = data[1 : len(data)-1]
-	err2 := json.Unmarshal(data, &object)
+	defer response.Body.Close()
 
-	if err2 != io.EOF && err2 != nil {
-		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
+	arr := IdentifiablesList{object} // trick for weird api..
+	if err := json.NewDecoder(response.Body).Decode(&arr); err != nil {
+		return NewError(0, err.Error())
 	}
 
 	return nil
@@ -272,28 +267,26 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 // SaveEntity saves the given Identifiable into the server.
 func (s *Session) SaveEntity(object Identifiable) *Error {
 
-	data, _ := json.Marshal(object)
-	request, _ := http.NewRequest("PUT", s.getPersonalURL(object), bytes.NewBuffer(data))
-	response, err1 := s.send(request, nil)
-
-	if response != nil {
-		defer response.Body.Close()
+	buffer := &bytes.Buffer{}
+	if err := json.NewEncoder(buffer).Encode(object); err != nil {
+		return NewError(0, err.Error())
 	}
 
-	if err1 != nil {
-		Logger().Errorf("Error during SaveEntity: %s", err1.Error())
-		return err1
+	request, err := http.NewRequest("PUT", s.getPersonalURL(object), buffer)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	data, _ = ioutil.ReadAll(response.Body)
+	response, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
+	}
 
-	if len(data) > 0 {
-		data := data[1 : len(data)-1]
-		err2 := json.Unmarshal(data, &object)
+	defer response.Body.Close()
 
-		if err2 != io.EOF && err2 != nil {
-			panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
-		}
+	dest := IdentifiablesList{object}
+	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+		return NewError(0, err.Error())
 	}
 
 	return nil
@@ -302,12 +295,14 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 // DeleteEntity deletes the given Identifiable from the server.
 func (s *Session) DeleteEntity(object Identifiable) *Error {
 
-	request, _ := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
-	_, error := s.send(request, nil)
+	request, err := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
+	}
 
-	if error != nil {
-		Logger().Errorf("Error during DeleteEntity: %s", error.Error())
-		return error
+	_, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
 	}
 
 	return nil
@@ -316,27 +311,24 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 // FetchChildren fetches the children with of given parent identified by the given Identity.
 func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
-	request, _ := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
-	response, err1 := s.send(request, nil)
-
-	if response != nil {
-		defer response.Body.Close()
+	request, err := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	if err1 != nil {
-		Logger().Errorf("Error during FetchChildren: %s", err1.Error())
-		return err1
+	response, berr := s.send(request, info)
+	if berr != nil {
+		return berr
 	}
+
+	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNoContent || response.ContentLength == 0 {
 		return nil
 	}
 
-	data, _ := ioutil.ReadAll(response.Body)
-	err2 := json.Unmarshal(data, dest)
-
-	if err2 != io.EOF && err2 != nil {
-		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
+	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+		return NewError(0, err.Error())
 	}
 
 	return nil
@@ -345,25 +337,26 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 // CreateChild creates a new child Identifiable under the given parent Identifiable in the server.
 func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
-	data, _ := json.Marshal(child)
-	request, _ := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.Identity()), bytes.NewBuffer(data))
-	response, err1 := s.send(request, nil)
-
-	if response != nil {
-		defer response.Body.Close()
+	buffer := &bytes.Buffer{}
+	if err := json.NewEncoder(buffer).Encode(child); err != nil {
+		return NewError(0, err.Error())
 	}
 
-	if err1 != nil {
-		Logger().Errorf("Error during CreateChild: %s", err1.Error())
-		return err1
+	request, err := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.Identity()), buffer)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	data, _ = ioutil.ReadAll(response.Body)
-	data = data[1 : len(data)-1]
-	err2 := json.Unmarshal(data, child)
+	response, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
+	}
 
-	if err2 != io.EOF && err2 != nil {
-		panic(fmt.Sprintf("Unable to unmarshal json %s: %s", string(data), err2.Error()))
+	defer response.Body.Close()
+
+	dest := IdentifiablesList{child}
+	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+		return NewError(0, err.Error())
 	}
 
 	return nil
@@ -373,18 +366,23 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, identity Identity) *Error {
 
 	var ids []string
-
 	for _, c := range children {
 		ids = append(ids, c.Identifier())
 	}
 
-	data, _ := json.Marshal(&ids)
-	request, _ := http.NewRequest("PUT", s.getURLForChildrenIdentity(parent, identity), bytes.NewBuffer(data))
-	_, error := s.send(request, nil)
+	buffer := &bytes.Buffer{}
+	if err := json.NewEncoder(buffer).Encode(ids); err != nil {
+		return NewError(0, err.Error())
+	}
 
-	if error != nil {
-		Logger().Errorf("Error during AssignChildren: %s", error.Error())
-		return error
+	request, err := http.NewRequest("PUT", s.getURLForChildrenIdentity(parent, identity), buffer)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
+	}
+
+	_, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
 	}
 
 	return nil
@@ -392,32 +390,31 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 // NextEvent will return the next notification from the backend as it occurs and will
 // send it to the correct channel.
-func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) {
+func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *Error {
 
 	currentURL := s.URL + "/events"
-
 	if lastEventID != "" {
 		currentURL += "?uuid=" + lastEventID
 	}
 
-	request, _ := http.NewRequest("GET", currentURL, nil)
-	response, err1 := s.send(request, nil)
-
-	if err1 != nil {
-		Logger().Errorf("Error during push: %s", err1.Error())
-		return
+	request, err := http.NewRequest("GET", currentURL, nil)
+	if err != nil {
+		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	data, _ := ioutil.ReadAll(response.Body)
-	notification := NewNotification()
-	err2 := json.Unmarshal(data, &notification)
+	response, berr := s.send(request, nil)
+	if berr != nil {
+		return berr
+	}
 
-	if err2 != io.EOF && err2 != nil {
-		Logger().Errorf("Error during push: %s", err2.Error())
-		return
+	notification := NewNotification()
+	if err := json.NewDecoder(response.Body).Decode(notification); err != nil {
+		return NewError(0, err.Error())
 	}
 
 	if len(notification.Events) > 0 {
 		channel <- notification
 	}
+
+	return nil
 }

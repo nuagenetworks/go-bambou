@@ -24,6 +24,7 @@
 package bambou
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
 
@@ -51,8 +52,8 @@ func TestNotification_FromJSON(t *testing.T) {
 		n := NewNotification()
 
 		Convey("When I unmarshal son json data", func() {
-			d := "{\"uuid\": \"007\", \"events\": [{\"entityType\": \"cat\", \"type\": \"UPDATE\", \"updateMechanism\": \"useless\", \"entities\":[{\"name\": \"hello\"}]}]}"
-			json.Unmarshal([]byte(d), &n)
+			d := `{"uuid": "007", "events": [{"entityType": "cat", "type": "UPDATE", "updateMechanism": "useless", "entities":[{"name": "hello"}]}]}`
+			json.NewDecoder(bytes.NewBuffer([]byte(d))).Decode(n)
 
 			Convey("Then UUI should be '007'", func() {
 				So(n.UUID, ShouldEqual, "007")
