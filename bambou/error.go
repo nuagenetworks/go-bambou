@@ -28,13 +28,13 @@ import (
 )
 
 const (
-	ErrorJSONCannotDecode = 10001
-	ErrorJSONCannotEncode = 10002
-	ErrorSessionAlreadyStarted = 11001
-	ErrorSessionCannotForgeAuthToken = 11002
-	ErrorSessionCannotProcessRequest = 11003
-	ErrorSessionIDNotSet = 11004
-	ErrorSessionUsernameNotSet = 11005
+	ErrorCodeJSONCannotDecode = 10001
+	ErrorCodeJSONCannotEncode = 10002
+	ErrorCodeSessionAlreadyStarted = 11001
+	ErrorCodeSessionCannotForgeAuthToken = 11002
+	ErrorCodeSessionCannotProcessRequest = 11003
+	ErrorCodeSessionIDNotSet = 11004
+	ErrorCodeSessionUsernameNotSet = 11005
 )
 
 // ErrorDescriptionsList represents a list of *ErrorDescriptions.

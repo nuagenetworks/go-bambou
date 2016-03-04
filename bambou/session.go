@@ -89,7 +89,7 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 
 	if CurrentSession() != nil {
-		return NewError(ErrorSessionAlreadyStarted, "The session is already started. Stop it first")
+		return NewError(ErrorCodeSessionAlreadyStarted, "The session is already started. Stop it first")
 	}
 
 	s.client = &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: skip}}}
@@ -100,12 +100,12 @@ func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 	if s.Username == "" {
-		return "", NewError(ErrorSessionUsernameNotSet, "Error while creating headers: User must be set")
+		return "", NewError(ErrorCodeSessionUsernameNotSet, "Error while creating headers: User must be set")
 	}
 
 	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
-		return "", NewError(ErrorSessionCannotForgeAuthToken, "Error while creating headers: Password or APIKey must be set")
+		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: Password or APIKey must be set")
 	}
 
 	if key == "" {
@@ -178,7 +178,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 	response, err := s.client.Do(request)
 
 	if err != nil {
-		return response, NewError(ErrorSessionCannotProcessRequest, err.Error())
+		return response, NewError(ErrorCodeSessionCannotProcessRequest, err.Error())
 	}
 
 	switch response.StatusCode {
@@ -195,7 +195,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 	case http.StatusConflict:
 		berr := NewError(response.StatusCode, "")
 		if err := json.NewDecoder(response.Body).Decode(&berr); err != nil {
-			return nil, NewError(ErrorJSONCannotDecode, err.Error())
+			return nil, NewError(ErrorCodeJSONCannotDecode, err.Error())
 		}
 		return nil, berr
 
@@ -216,7 +216,7 @@ func (s *Session) getPersonalURL(o Identifiable) (string, *Error) {
 	}
 
 	if o.Identifier() == "" {
-		return "", NewError(ErrorSessionIDNotSet, "Cannot GetPersonalURL of an object with no ID set")
+		return "", NewError(ErrorCodeSessionIDNotSet, "Cannot GetPersonalURL of an object with no ID set")
 	}
 
 	return s.getGeneralURL(o) + "/" + o.Identifier(), nil
@@ -288,7 +288,7 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	arr := IdentifiablesList{object} // trick for weird api..
 	if err := json.NewDecoder(response.Body).Decode(&arr); err != nil {
-		return NewError(ErrorJSONCannotDecode, err.Error())
+		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
 	return nil
@@ -304,7 +304,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(object); err != nil {
-		return NewError(ErrorJSONCannotEncode, err.Error())
+		return NewError(ErrorCodeJSONCannotEncode, err.Error())
 	}
 
 	request, err := http.NewRequest("PUT", url, buffer)
@@ -321,7 +321,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	dest := IdentifiablesList{object}
 	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
-		return NewError(ErrorJSONCannotDecode, err.Error())
+		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
 	return nil
@@ -373,7 +373,7 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	}
 
 	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
-		return NewError(ErrorJSONCannotDecode, err.Error())
+		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
 	return nil
@@ -389,7 +389,7 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(child); err != nil {
-		return NewError(ErrorJSONCannotEncode, err.Error())
+		return NewError(ErrorCodeJSONCannotEncode, err.Error())
 	}
 
 	request, err := http.NewRequest("POST", url, buffer)
@@ -406,7 +406,7 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	dest := IdentifiablesList{child}
 	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
-		return NewError(ErrorJSONCannotDecode, err.Error())
+		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
 	return nil
@@ -427,7 +427,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(ids); err != nil {
-		return NewError(ErrorJSONCannotEncode, err.Error())
+		return NewError(ErrorCodeJSONCannotEncode, err.Error())
 	}
 
 	request, err := http.NewRequest("PUT", url, buffer)
@@ -464,7 +464,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 
 	notification := NewNotification()
 	if err := json.NewDecoder(response.Body).Decode(notification); err != nil {
-		return NewError(ErrorJSONCannotDecode, err.Error())
+		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
 	if len(notification.Events) > 0 {
