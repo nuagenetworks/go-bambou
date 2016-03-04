@@ -251,7 +251,6 @@ func (s *Session) Start() *Error {
 	err := s.FetchEntity(s.root)
 
 	if err != nil {
-		Logger().Errorf("Error during Authentication: %s", err.Error())
 		return err
 	}
 
