@@ -84,33 +84,38 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 	}
 }
 
-func (s *Session) makeAuthorizationHeaders() string {
+func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 	if s.Username == "" {
-		panic("Error while creating headers: User must be set")
+		return "", NewError(0, "Error while creating headers: User must be set")
 	}
 
 	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
-		panic("Error while creating headers: Password or APIKey must be set")
+		return "", NewError(0, "Error while creating headers: Password or APIKey must be set")
 	}
 
 	if key == "" {
 		key = s.Password
 	}
 
-	return "XREST " + base64.StdEncoding.EncodeToString([]byte(s.Username+":"+key))
+	return "XREST " + base64.StdEncoding.EncodeToString([]byte(s.Username+":"+key)), nil
 }
 
-func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) {
+func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Error {
 
+	authString, err := s.makeAuthorizationHeaders()
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Authorization", authString)
 	request.Header.Set("X-Nuage-PageSize", "50")
 	request.Header.Set("X-Nuage-Organization", s.Organization)
-	request.Header.Set("Authorization", s.makeAuthorizationHeaders())
 	request.Header.Set("Content-Type", "application/json")
 
 	if info == nil {
-		return
+		return nil
 	}
 
 	if info.Filter != "" {
@@ -133,6 +138,8 @@ func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) {
 		request.Header.Set("X-Nuage-GroupBy", "true")
 		request.Header.Set("X-Nuage-Attributes", strings.Join(info.GroupBy, ", "))
 	}
+
+	return nil
 }
 
 func (s *Session) readHeaders(response *http.Response, info *FetchingInfo) {
@@ -189,26 +196,31 @@ func (s *Session) getGeneralURL(o Identifiable) string {
 	return s.URL + "/" + o.Identity().Category
 }
 
-func (s *Session) getPersonalURL(o Identifiable) string {
+func (s *Session) getPersonalURL(o Identifiable) (string, *Error) {
 
 	if _, ok := o.(Rootable); ok {
-		return s.URL + "/" + o.Identity().Name
+		return s.URL + "/" + o.Identity().Name, nil
 	}
 
 	if o.Identifier() == "" {
-		panic("Cannot GetPersonalURL of an object with no ID set")
+		return "", NewError(0, "Cannot GetPersonalURL of an object with no ID set")
 	}
 
-	return s.getGeneralURL(o) + "/" + o.Identifier()
+	return s.getGeneralURL(o) + "/" + o.Identifier(), nil
 }
 
-func (s *Session) getURLForChildrenIdentity(o Identifiable, childrenIdentity Identity) string {
+func (s *Session) getURLForChildrenIdentity(o Identifiable, childrenIdentity Identity) (string, *Error) {
 
 	if _, ok := o.(Rootable); ok {
-		return s.URL + "/" + childrenIdentity.Category
+		return s.URL + "/" + childrenIdentity.Category, nil
 	}
 
-	return s.getPersonalURL(o) + "/" + childrenIdentity.Category
+	url, err := s.getPersonalURL(o)
+	if err != nil {
+		return "", err
+	}
+
+	return url + "/" + childrenIdentity.Category, nil
 }
 
 // Root returns the Root API object.
@@ -244,7 +256,12 @@ func (s *Session) Reset() {
 // FetchEntity fetchs the given Identifiable from the server.
 func (s *Session) FetchEntity(object Identifiable) *Error {
 
-	request, err := http.NewRequest("GET", s.getPersonalURL(object), nil)
+	url, berr := s.getPersonalURL(object)
+	if berr != nil{
+		return berr
+	}
+
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
@@ -267,12 +284,17 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 // SaveEntity saves the given Identifiable into the server.
 func (s *Session) SaveEntity(object Identifiable) *Error {
 
+	url, berr := s.getPersonalURL(object)
+	if berr != nil {
+		return berr
+	}
+
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(object); err != nil {
 		return NewError(0, err.Error())
 	}
 
-	request, err := http.NewRequest("PUT", s.getPersonalURL(object), buffer)
+	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
@@ -295,12 +317,17 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 // DeleteEntity deletes the given Identifiable from the server.
 func (s *Session) DeleteEntity(object Identifiable) *Error {
 
-	request, err := http.NewRequest("DELETE", s.getPersonalURL(object), nil)
+	url, berr := s.getPersonalURL(object)
+	if berr != nil {
+		return berr
+	}
+
+	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	_, berr := s.send(request, nil)
+	_, berr = s.send(request, nil)
 	if berr != nil {
 		return berr
 	}
@@ -311,7 +338,12 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 // FetchChildren fetches the children with of given parent identified by the given Identity.
 func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest interface{}, info *FetchingInfo) *Error {
 
-	request, err := http.NewRequest("GET", s.getURLForChildrenIdentity(parent, identity), nil)
+	url, berr := s.getURLForChildrenIdentity(parent, identity)
+	if berr != nil {
+		return berr
+	}
+
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
@@ -337,12 +369,17 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 // CreateChild creates a new child Identifiable under the given parent Identifiable in the server.
 func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
+	url, berr := s.getURLForChildrenIdentity(parent, child.Identity())
+	if berr != nil {
+	    return berr
+	}
+
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(child); err != nil {
 		return NewError(0, err.Error())
 	}
 
-	request, err := http.NewRequest("POST", s.getURLForChildrenIdentity(parent, child.Identity()), buffer)
+	request, err := http.NewRequest("POST", url, buffer)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
@@ -365,6 +402,11 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 // AssignChildren assigns the list of given child Identifiables to the given Identifiable parent in the server.
 func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, identity Identity) *Error {
 
+	url, berr := s.getURLForChildrenIdentity(parent, identity)
+	if berr != nil {
+	    return berr
+	}
+
 	var ids []string
 	for _, c := range children {
 		ids = append(ids, c.Identifier())
@@ -375,12 +417,12 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 		return NewError(0, err.Error())
 	}
 
-	request, err := http.NewRequest("PUT", s.getURLForChildrenIdentity(parent, identity), buffer)
+	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
 
-	_, berr := s.send(request, nil)
+	_, berr = s.send(request, nil)
 	if berr != nil {
 		return berr
 	}

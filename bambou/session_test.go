@@ -78,10 +78,14 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 		Convey("When I prepare the Authorization with a session that doesn't have an APIKey", func() {
 
 			s := NewSession("username", "password", "organization", "http://url.com", r)
-			h := s.makeAuthorizationHeaders()
+			h, err := s.makeAuthorizationHeaders()
 
 			Convey("Then the header should be 'XREST dXNlcm5hbWU6cGFzc3dvcmQ=", func() {
 				So(h, ShouldEqual, "XREST dXNlcm5hbWU6cGFzc3dvcmQ=")
+			})
+
+			Convey("Then the error should be nil", func() {
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -89,19 +93,28 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 			s := NewSession("username", "password", "organization", "http://url.com", r)
 			s.Root().SetAPIKey("api-key")
-			h := s.makeAuthorizationHeaders()
+			h, err := s.makeAuthorizationHeaders()
 
 			Convey("Then the header should be 'XREST dXNlcm5hbWU6YXBpLWtleQ==", func() {
 				So(h, ShouldEqual, "XREST dXNlcm5hbWU6YXBpLWtleQ==")
+			})
+
+			Convey("Then the error should be nil", func() {
+				So(err, ShouldBeNil)
 			})
 		})
 
 		Convey("When I prepare the Authorization with a session missing username", func() {
 
 			s := NewSession("", "password", "organization", "http://url.com", r)
+			h, err := s.makeAuthorizationHeaders()
 
-			Convey("Then it should panic", func() {
-				So(func() { s.makeAuthorizationHeaders() }, ShouldPanic)
+			Convey("Then the header should not be empty", func() {
+				So(h, ShouldEqual, "")
+			})
+
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -109,8 +122,14 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 			s := NewSession("username", "", "organization", "http://url.com", r)
 
-			Convey("Then it should panic", func() {
-				So(func() { s.makeAuthorizationHeaders() }, ShouldPanic)
+			h, err := s.makeAuthorizationHeaders()
+
+			Convey("Then the header should not be empty", func() {
+				So(h, ShouldEqual, "")
+			})
+
+			Convey("Then the error should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 	})
@@ -246,59 +265,124 @@ func TestSession_readHeaders(t *testing.T) {
 	})
 }
 
-func TestSession_URI(t *testing.T) {
+func TestSession_rootURI(t *testing.T) {
 
 	Convey("Given I create a new Session", t, func() {
 
 		r := NewFakeRootObject()
 		r.SetIdentifier("yyy")
+		s := NewSession("username", "password", "organization", "http://url.com", r)
+
+		Convey("When I check the personal URL the root object", func() {
+
+			url, err := s.getPersonalURL(r)
+
+			Convey("Then it should be http://url.com/root", func() {
+				So(url, ShouldEqual, "http://url.com/root")
+			})
+
+			Convey("Then err should be nil", func() {
+			    So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("When I check the general URL the root object", func() {
+
+			url := s.getGeneralURL(r)
+
+			Convey("Then it should be http://url.com/root", func() {
+				So(url, ShouldEqual, "http://url.com/root")
+			})
+		})
+
+		Convey("When I check the children URL for root object", func() {
+
+			url, err := s.getURLForChildrenIdentity(r, FakeIdentity)
+
+			Convey("Then URL of the children with FakeIdentity should be http://url.com/fakes", func() {
+				So(url, ShouldEqual, "http://url.com/fakes")
+			})
+
+			Convey("Then err should be nil", func() {
+			    So(err, ShouldBeNil)
+			})
+		})
+	})
+}
+
+func TestSession_stndardURI(t *testing.T) {
+
+	Convey("Given I create a new Session and an object", t, func() {
+
+		r := NewFakeRootObject()
+		e := NewFakeObject("")
 
 		s := NewSession("username", "password", "organization", "http://url.com", r)
 
-		Convey("When I check the URI the root object", func() {
+		Convey("When I check personal URI of a standard object with an ID", func() {
 
-			Convey("Then personal URL should be http://url.com/root", func() {
-				So(s.getPersonalURL(r), ShouldEqual, "http://url.com/root")
+			e.SetIdentifier("xxx")
+			url, err := s.getPersonalURL(e)
+
+			Convey("Then it should be http://url.com/fakes/xxx", func() {
+				So(url,  ShouldEqual, "http://url.com/fakes/xxx")
 			})
 
-			Convey("Then general URL should be http://url.com/root", func() {
-				So(s.getGeneralURL(r), ShouldEqual, "http://url.com/root")
-			})
-
-			Convey("Then URL of the children with FakeIdentity should be http://url.com/fakes", func() {
-				So(s.getURLForChildrenIdentity(r, FakeIdentity), ShouldEqual, "http://url.com/fakes")
+			Convey("Then err should be nil", func() {
+			    So(err, ShouldBeNil)
 			})
 		})
 
-		Convey("When I check the URI of a standard object with an ID", func() {
+		Convey("When I check general URI of a standard object with an ID", func() {
 
-			e := NewFakeObject("xxx")
+			e.SetIdentifier("xxx")
+			url := s.getGeneralURL(e)
 
-			Convey("Then personal URL should be http://url.com/fakes/xxx", func() {
-				So(s.getPersonalURL(e), ShouldEqual, "http://url.com/fakes/xxx")
+			Convey("Then it should be http://url.com/fakes", func() {
+				So(url, ShouldEqual, "http://url.com/fakes")
 			})
+		})
 
-			Convey("Then general URL should be http://url.com/fakes", func() {
-				So(s.getGeneralURL(e), ShouldEqual, "http://url.com/fakes")
-			})
+		Convey("When I check children URL for a standard object with an ID", func() {
+
+			e.SetIdentifier("xxx")
+			url, err := s.getURLForChildrenIdentity(e, FakeRootIdentity)
 
 			Convey("Then URL of the children with FakeRootIdentity should be http://url.com/fakes/xxx/root", func() {
-				So(s.getURLForChildrenIdentity(e, FakeRootIdentity), ShouldEqual, "http://url.com/fakes/xxx/root")
+				So(url, ShouldEqual, "http://url.com/fakes/xxx/root")
+			})
+
+			Convey("Then err should be nil", func() {
+			    So(err, ShouldBeNil)
 			})
 		})
 
-		Convey("When I check the URI of a standard object without an ID", func() {
+		Convey("When I check the general URL of a standard object without an ID", func() {
 
-			e := NewFakeObject("")
+			url, err := s.getURLForChildrenIdentity(e, FakeRootIdentity)
 
-			Convey("Then getting general URL should not panic", func() {
-				So(func() { s.getGeneralURL(e) }, ShouldNotPanic)
+			Convey("Then it should be ''", func() {
+				So(url, ShouldEqual, "")
 			})
 
-			Convey("Then getting the personal URL should panic", func() {
-				So(func() { s.getPersonalURL(e) }, ShouldPanic)
+			Convey("Then err should not be nil", func() {
+			    So(err, ShouldNotBeNil)
 			})
 		})
+
+		Convey("When I check the children URL for a standard object without an ID", func() {
+
+			url, err := s.getURLForChildrenIdentity(e, FakeRootIdentity)
+
+			Convey("Then it should be ''", func() {
+				So(url, ShouldEqual, "")
+			})
+
+			Convey("Then err should not be nil", func() {
+			    So(err, ShouldNotBeNil)
+			})
+		})
+
 	})
 }
 
