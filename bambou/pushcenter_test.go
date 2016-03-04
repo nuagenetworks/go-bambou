@@ -121,6 +121,8 @@ func TestPushCenter_Start(t *testing.T) {
 
 	Convey("Given I create a new PushCenter and resgister a handler", t, func() {
 
+		cont := make(chan bool)
+
 		type notifList struct {
 			notifications EventsList
 			lock          sync.Mutex
@@ -140,9 +142,9 @@ func TestPushCenter_Start(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 				fmt.Fprint(w, `{"uuid": "y", "events": [{"type": "CREATE", "entityType": "notfake", "updateMechanism": "DEFAULT", "entities": [{"ID": "y"}]}]}`)
 			} else {
-				time.Sleep(1 * time.Second)
 				w.Header().Set("Content-Type", "application/json")
 				fmt.Fprint(w, `{"uuid": "z", "events": [{"type": "CREATE", "entityType": "fake", "updateMechanism": "DEFAULT", "entities": [{"ID": "z"}]}]}`)
+				cont <- true
 			}
 			c++
 		}))
@@ -169,7 +171,7 @@ func TestPushCenter_Start(t *testing.T) {
 		Convey("When I start the push center and receive the notifications", func() {
 
 			p.Start()
-			time.Sleep(20 * time.Millisecond)
+			<-cont
 			n.lock.Lock()
 
 			Convey("Then the number of notifications should be 3", func() {
