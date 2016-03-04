@@ -80,8 +80,21 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 		Organization: organization,
 		URL:          url,
 		root:         root,
-		client:       &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}},
+		client:       &http.Client{},
 	}
+}
+
+// SetInsecureSkipVerify sets if the internal HTTP client should allow to connect
+// to insecure API endpoints.
+func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
+
+	if CurrentSession() != nil {
+		return NewError(0, "The session is already started. Stop it first")
+	}
+
+	s.client = &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: skip}}}
+
+	return nil
 }
 
 func (s *Session) makeAuthorizationHeaders() (string, *Error) {

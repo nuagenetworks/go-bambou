@@ -66,6 +66,37 @@ func TestSession_NewSession(t *testing.T) {
 	})
 }
 
+func TestSession_SetInsecureSkipVerify(t *testing.T) {
+
+	Convey("Given I create a new Session", t, func() {
+
+		r := NewFakeRootObject()
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, `[{"ID": "xxx", "APIKey": "api-key"}]`)
+		}))
+		defer ts.Close()
+		session := NewSession("username", "password", "organization", ts.URL, r)
+
+		Convey("When I set the insecure check skip to true on a stopped session", func() {
+
+			err := session.SetInsecureSkipVerify(true)
+
+			Convey("Then err should be nil", func() {
+			    So(err, ShouldBeNil)
+			})
+		})
+
+		Convey("When I set the insecure check skip to true on a started session", func() {
+
+		    session.Start()
+		    err := session.SetInsecureSkipVerify(true)
+
+		    Convey("Then err should not be nil", func() {
+		        So(err, ShouldNotBeNil)
+		    })
+		})
+	})
+}
 /*
 	Privates
 */
@@ -310,7 +341,7 @@ func TestSession_rootURI(t *testing.T) {
 	})
 }
 
-func TestSession_stndardURI(t *testing.T) {
+func TestSession_standardURI(t *testing.T) {
 
 	Convey("Given I create a new Session and an object", t, func() {
 
