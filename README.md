@@ -1,5 +1,7 @@
 # Go-Bambou
 
+[![Join the chat at https://gitter.im/nuagenetworks/go-bambou](https://badges.gitter.im/nuagenetworks/go-bambou.svg)](https://gitter.im/nuagenetworks/go-bambou?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![GoDoc](https://godoc.org/github.com/nuagenetworks/go-bambou/bambou?status.svg)](https://godoc.org/github.com/nuagenetworks/go-bambou/bambou)
 [![Build Status](https://travis-ci.org/nuagenetworks/go-bambou.svg?branch=master)](https://travis-ci.org/nuagenetworks/go-bambou)
 [![Coverage Status](https://coveralls.io/repos/github/nuagenetworks/go-bambou/badge.svg?branch=master)](https://coveralls.io/github/nuagenetworks/go-bambou?branch=master)
