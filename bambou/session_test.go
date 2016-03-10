@@ -82,21 +82,22 @@ func TestSession_SetInsecureSkipVerify(t *testing.T) {
 			err := session.SetInsecureSkipVerify(true)
 
 			Convey("Then err should be nil", func() {
-			    So(err, ShouldBeNil)
+				So(err, ShouldBeNil)
 			})
 		})
 
 		Convey("When I set the insecure check skip to true on a started session", func() {
 
-		    session.Start()
-		    err := session.SetInsecureSkipVerify(true)
+			session.Start()
+			err := session.SetInsecureSkipVerify(true)
 
-		    Convey("Then err should not be nil", func() {
-		        So(err, ShouldNotBeNil)
-		    })
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
 		})
 	})
 }
+
 /*
 	Privates
 */
@@ -313,7 +314,7 @@ func TestSession_rootURI(t *testing.T) {
 			})
 
 			Convey("Then err should be nil", func() {
-			    So(err, ShouldBeNil)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -335,7 +336,7 @@ func TestSession_rootURI(t *testing.T) {
 			})
 
 			Convey("Then err should be nil", func() {
-			    So(err, ShouldBeNil)
+				So(err, ShouldBeNil)
 			})
 		})
 	})
@@ -356,11 +357,11 @@ func TestSession_standardURI(t *testing.T) {
 			url, err := s.getPersonalURL(e)
 
 			Convey("Then it should be http://url.com/fakes/xxx", func() {
-				So(url,  ShouldEqual, "http://url.com/fakes/xxx")
+				So(url, ShouldEqual, "http://url.com/fakes/xxx")
 			})
 
 			Convey("Then err should be nil", func() {
-			    So(err, ShouldBeNil)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -384,7 +385,7 @@ func TestSession_standardURI(t *testing.T) {
 			})
 
 			Convey("Then err should be nil", func() {
-			    So(err, ShouldBeNil)
+				So(err, ShouldBeNil)
 			})
 		})
 
@@ -397,7 +398,7 @@ func TestSession_standardURI(t *testing.T) {
 			})
 
 			Convey("Then err should not be nil", func() {
-			    So(err, ShouldNotBeNil)
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -410,7 +411,7 @@ func TestSession_standardURI(t *testing.T) {
 			})
 
 			Convey("Then err should not be nil", func() {
-			    So(err, ShouldNotBeNil)
+				So(err, ShouldNotBeNil)
 			})
 		})
 

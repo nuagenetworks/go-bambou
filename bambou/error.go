@@ -28,12 +28,32 @@ import (
 )
 
 const (
+	// ErrorCodeJSONCannotDecode is the code that means it is impossible to
+	// decode json data.
 	ErrorCodeJSONCannotDecode = 10001
+
+	// ErrorCodeJSONCannotEncode is the code that means it is impossible to
+	// encode json data.
 	ErrorCodeJSONCannotEncode = 10002
+
+	// ErrorCodeSessionAlreadyStarted is the error code that means a session
+	// is already stared.
 	ErrorCodeSessionAlreadyStarted = 11001
-	ErrorCodeSessionCannotForgeAuthToken = 11002
+
+	// ErrorCodeSessionCannotForgetAuthToken is the code that means no password
+	// or token has been given to the session.
+	ErrorCodeSessionCannotForgetAuthToken = 11002
+
+	// ErrorCodeSessionCannotProcessRequest is the code that means that it was
+	// impossible to process a request.
 	ErrorCodeSessionCannotProcessRequest = 11003
+
+	// ErrorCodeSessionIDNotSet is the code that means the Identifiable is
+	// missing a required ID.
 	ErrorCodeSessionIDNotSet = 11004
+
+	// ErrorCodeSessionUsernameNotSet is the code that means the username
+	// is missing.
 	ErrorCodeSessionUsernameNotSet = 11005
 )
 

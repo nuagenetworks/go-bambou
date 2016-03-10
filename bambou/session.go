@@ -105,7 +105,7 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
-		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: Password or APIKey must be set")
+		return "", NewError(ErrorCodeSessionCannotForgetAuthToken, "Error while creating headers: Password or APIKey must be set")
 	}
 
 	if key == "" {
@@ -269,7 +269,7 @@ func (s *Session) Reset() {
 func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	url, berr := s.getPersonalURL(object)
-	if berr != nil{
+	if berr != nil {
 		return berr
 	}
 
@@ -383,7 +383,7 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	url, berr := s.getURLForChildrenIdentity(parent, child.Identity())
 	if berr != nil {
-	    return berr
+		return berr
 	}
 
 	buffer := &bytes.Buffer{}
@@ -416,7 +416,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 	url, berr := s.getURLForChildrenIdentity(parent, identity)
 	if berr != nil {
-	    return berr
+		return berr
 	}
 
 	var ids []string
