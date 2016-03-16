@@ -42,7 +42,7 @@ const (
 
 	// ErrorCodeSessionCannotForgetAuthToken is the code that means no password
 	// or token has been given to the session.
-	ErrorCodeSessionCannotForgetAuthToken = 11002
+	ErrorCodeSessionCannotForgeAuthToken = 11002
 
 	// ErrorCodeSessionCannotProcessRequest is the code that means that it was
 	// impossible to process a request.

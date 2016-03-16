@@ -103,9 +103,13 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 		return "", NewError(ErrorCodeSessionUsernameNotSet, "Error while creating headers: User must be set")
 	}
 
+	if s.root == nil {
+		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: no root user set")
+	}
+
 	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
-		return "", NewError(ErrorCodeSessionCannotForgetAuthToken, "Error while creating headers: Password or APIKey must be set")
+		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: Password or APIKey must be set")
 	}
 
 	if key == "" {
@@ -117,9 +121,9 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Error {
 
-	authString, err := s.makeAuthorizationHeaders()
-	if err != nil {
-		return err
+	authString, berr := s.makeAuthorizationHeaders()
+	if berr != nil {
+		return berr
 	}
 
 	request.Header.Set("Authorization", authString)
@@ -421,7 +425,12 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 	var ids []string
 	for _, c := range children {
-		ids = append(ids, c.Identifier())
+
+		if i := c.Identifier(); i != "" {
+			ids = append(ids, c.Identifier())
+		} else {
+			return NewError(ErrorCodeSessionIDNotSet, "One of the object to assign has no ID")
+		}
 	}
 
 	buffer := &bytes.Buffer{}

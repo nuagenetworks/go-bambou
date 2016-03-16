@@ -169,76 +169,92 @@ func TestSession_makeAuthorizationHeaders(t *testing.T) {
 
 func TestSession_prepareHeaders(t *testing.T) {
 
-	r := NewFakeRootObject()
+	Convey("Given I create a non authenticated session", t, func() {
 
-	session := NewSession("username", "password", "organization", "http://fake.com", r)
+		session := NewSession("username", "password", "organization", "http://fake.com", nil)
 
-	Convey("Given I create a FetchingInfo", t, func() {
-		f := NewFetchingInfo()
-		r, _ := http.NewRequest("GET", "http://fake.com", nil)
+		Convey("When I call makeAuthorizationHeaders", func() {
 
-		Convey("When I prepareHeaders with a no fetching info", func() {
-			session.prepareHeaders(r, nil)
+			r, _ := http.NewRequest("GET", "http://fake.com", nil)
+			err := session.prepareHeaders(r, nil)
 
-			Convey("Then I should not have a value for X-Nuage-Page", func() {
-				So(r.Header.Get("X-Nuage-Page"), ShouldEqual, "")
-			})
-
-			Convey("Then I should have a the X-Nuage-PageSize set to 50", func() {
-				So(r.Header.Get("X-Nuage-PageSize"), ShouldEqual, "50")
-			})
-
-			Convey("Then I should not have a value for X-Nuage-Filter", func() {
-				So(r.Header.Get("X-Nuage-Filter"), ShouldEqual, "")
-			})
-
-			Convey("Then I should not have a value for X-Nuage-OrderBy", func() {
-				So(r.Header.Get("X-Nuage-OrderBy"), ShouldEqual, "")
-			})
-
-			Convey("Then I should not have a value for X-Nuage-GroupBy", func() {
-				So(r.Header.Get("X-Nuage-GroupBy"), ShouldEqual, "")
-			})
-
-			Convey("Then I should not have a value for X-Nuage-Attributes", func() {
-				So(r.Header.Get("X-Nuage-Attributes"), ShouldEqual, "")
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
+	})
 
-		Convey("When I prepareHeaders witha fetching info that has a all fields", func() {
-			f.Page = 2
-			f.PageSize = 42
-			f.Filter = "filter"
-			f.OrderBy = "orderby"
-			f.GroupBy = []string{"group1", "group2"}
+	Convey("Given I create an authenticated session", t, func() {
 
-			session.prepareHeaders(r, f)
+		r := NewFakeRootObject()
+		session := NewSession("username", "password", "organization", "http://fake.com", r)
 
-			Convey("Then I should have a the X-Nuage-Page set to 2", func() {
-				So(r.Header.Get("X-Nuage-Page"), ShouldEqual, "2")
+		Convey("Given I create a FetchingInfo", func() {
+			f := NewFetchingInfo()
+			r, _ := http.NewRequest("GET", "http://fake.com", nil)
+
+			Convey("When I prepareHeaders with a no fetching info", func() {
+				session.prepareHeaders(r, nil)
+
+				Convey("Then I should not have a value for X-Nuage-Page", func() {
+					So(r.Header.Get("X-Nuage-Page"), ShouldEqual, "")
+				})
+
+				Convey("Then I should have a the X-Nuage-PageSize set to 50", func() {
+					So(r.Header.Get("X-Nuage-PageSize"), ShouldEqual, "50")
+				})
+
+				Convey("Then I should not have a value for X-Nuage-Filter", func() {
+					So(r.Header.Get("X-Nuage-Filter"), ShouldEqual, "")
+				})
+
+				Convey("Then I should not have a value for X-Nuage-OrderBy", func() {
+					So(r.Header.Get("X-Nuage-OrderBy"), ShouldEqual, "")
+				})
+
+				Convey("Then I should not have a value for X-Nuage-GroupBy", func() {
+					So(r.Header.Get("X-Nuage-GroupBy"), ShouldEqual, "")
+				})
+
+				Convey("Then I should not have a value for X-Nuage-Attributes", func() {
+					So(r.Header.Get("X-Nuage-Attributes"), ShouldEqual, "")
+				})
 			})
 
-			Convey("Then I should have a the X-Nuage-PageSize set to 42", func() {
-				So(r.Header.Get("X-Nuage-PageSize"), ShouldEqual, "42")
-			})
+			Convey("When I prepareHeaders witha fetching info that has a all fields", func() {
+				f.Page = 2
+				f.PageSize = 42
+				f.Filter = "filter"
+				f.OrderBy = "orderby"
+				f.GroupBy = []string{"group1", "group2"}
 
-			Convey("Then I should have a value for X-Nuage-Filter set to 'filter'", func() {
-				So(r.Header.Get("X-Nuage-Filter"), ShouldEqual, "filter")
-			})
+				session.prepareHeaders(r, f)
 
-			Convey("Then I should have a value for X-Nuage-OrderBy set to 'orderby'", func() {
-				So(r.Header.Get("X-Nuage-OrderBy"), ShouldEqual, "orderby")
-			})
+				Convey("Then I should have a the X-Nuage-Page set to 2", func() {
+					So(r.Header.Get("X-Nuage-Page"), ShouldEqual, "2")
+				})
 
-			Convey("Then I should have a value for X-Nuage-GroupBy set to true", func() {
-				So(r.Header.Get("X-Nuage-GroupBy"), ShouldEqual, "true")
-			})
+				Convey("Then I should have a the X-Nuage-PageSize set to 42", func() {
+					So(r.Header.Get("X-Nuage-PageSize"), ShouldEqual, "42")
+				})
 
-			Convey("Then I should have a value for X-Nuage-Attributes contains group1 and group2", func() {
-				So(r.Header.Get("X-Nuage-Attributes"), ShouldEqual, "group1, group2")
+				Convey("Then I should have a value for X-Nuage-Filter set to 'filter'", func() {
+					So(r.Header.Get("X-Nuage-Filter"), ShouldEqual, "filter")
+				})
+
+				Convey("Then I should have a value for X-Nuage-OrderBy set to 'orderby'", func() {
+					So(r.Header.Get("X-Nuage-OrderBy"), ShouldEqual, "orderby")
+				})
+
+				Convey("Then I should have a value for X-Nuage-GroupBy set to true", func() {
+					So(r.Header.Get("X-Nuage-GroupBy"), ShouldEqual, "true")
+				})
+
+				Convey("Then I should have a value for X-Nuage-Attributes contains group1 and group2", func() {
+					So(r.Header.Get("X-Nuage-Attributes"), ShouldEqual, "group1, group2")
+				})
 			})
 		})
-
 	})
 }
 
@@ -492,14 +508,23 @@ func TestSession_FetchEntity(t *testing.T) {
 		defer ts.Close()
 		session := NewSession("username", "password", "organization", ts.URL, r)
 
-		e := NewFakeObject("xxx")
-
 		Convey("When I fetch an entity with success", func() {
 
+			e := NewFakeObject("xxx")
 			session.FetchEntity(e)
 
 			Convey("Then Name should pedro", func() {
 				So(e.Name, ShouldEqual, "pedro")
+			})
+		})
+
+		Convey("When I fetch an entity with no ID", func() {
+
+			e := NewFakeObject("")
+			err := session.FetchEntity(e)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -512,6 +537,7 @@ func TestSession_FetchEntity(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			err := session.FetchEntity(e)
 
 			Convey("Then error should not be nil", func() {
@@ -527,6 +553,7 @@ func TestSession_FetchEntity(t *testing.T) {
 			}))
 			defer ts.Close()
 
+			e := NewFakeObject("xxx")
 			session := NewSession("username", "password", "organization", ts.URL, r)
 			err := session.FetchEntity(e)
 
@@ -542,7 +569,6 @@ func TestSession_SaveEntity(t *testing.T) {
 	Convey("Given I create a new object", t, func() {
 
 		r := NewFakeRootObject()
-		e := NewFakeObject("yyy")
 
 		Convey("When I save it with success", func() {
 
@@ -551,12 +577,26 @@ func TestSession_SaveEntity(t *testing.T) {
 				fmt.Fprint(w, `[{"ID": "zzz", "parentType": "pedro", "parentID": "yyy"}]`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("yyy")
 			session.SaveEntity(e)
 
 			Convey("Then ID should 'zzz'", func() {
 				So(e.Identifier(), ShouldEqual, "zzz")
+			})
+		})
+
+		Convey("When I save an entity with no ID", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+
+			e := NewFakeObject("")
+			err := session.SaveEntity(e)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -567,8 +607,10 @@ func TestSession_SaveEntity(t *testing.T) {
 				http.Error(w, "nope", 500)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("yyy")
 			err := session.SaveEntity(e)
 
 			Convey("Then error should not be nil", func() {
@@ -583,9 +625,12 @@ func TestSession_SaveEntity(t *testing.T) {
 				fmt.Fprint(w, `bad json`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("yyy")
 			err := session.SaveEntity(e)
+
 			Convey("Then the error should not be nil", func() {
 				So(err, ShouldNotBeNil)
 			})
@@ -597,7 +642,10 @@ func TestSession_SaveEntity(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
+
+			e := NewFakeObject("yyy")
 
 			Convey("Then it not should panic", func() {
 				So(func() { session.SaveEntity(e) }, ShouldNotPanic)
@@ -611,7 +659,6 @@ func TestSession_DeleteEntity(t *testing.T) {
 	Convey("Given I have an existing object", t, func() {
 
 		r := NewFakeRootObject()
-		e := NewFakeObject("xxx")
 
 		Convey("When I delete it with success", func() {
 
@@ -620,12 +667,26 @@ func TestSession_DeleteEntity(t *testing.T) {
 				fmt.Fprint(w, `[{"ID": "xxx"}]`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			session.DeleteEntity(e)
 
 			Convey("Then ID should 'xxx'", func() {
 				So(e.Identifier(), ShouldEqual, "xxx")
+			})
+		})
+
+		Convey("When I delete an entity with no ID", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+
+			e := NewFakeObject("")
+			err := session.DeleteEntity(e)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
 			})
 		})
 
@@ -638,6 +699,7 @@ func TestSession_DeleteEntity(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			err := session.DeleteEntity(e)
 
 			Convey("Then err should not be nil", func() {
@@ -652,7 +714,6 @@ func TestSession_FetchChildren(t *testing.T) {
 	Convey("Given I have an existing object", t, func() {
 
 		r := NewFakeRootObject()
-		e := NewFakeObject("xxx")
 
 		Convey("When I fetch its children with success", func() {
 
@@ -663,6 +724,7 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			var l FakeObjectsList
 			session.FetchChildren(e, FakeIdentity, &l, nil)
 
@@ -686,6 +748,19 @@ func TestSession_FetchChildren(t *testing.T) {
 			})
 		})
 
+		Convey("When I fetch its children but the parent has no ID", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+			e := NewFakeObject("")
+
+			var l FakeObjectsList
+			err := session.FetchChildren(e, FakeIdentity, &l, nil)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+
 		Convey("When I fetch its children while there is no data", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -694,6 +769,7 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			var l FakeObjectsList
 			session.FetchChildren(e, FakeIdentity, &l, nil)
 
@@ -712,6 +788,7 @@ func TestSession_FetchChildren(t *testing.T) {
 			defer ts.Close()
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			var l FakeObjectsList
 			session.FetchChildren(e, FakeIdentity, &l, nil)
 
@@ -727,8 +804,10 @@ func TestSession_FetchChildren(t *testing.T) {
 				http.Error(w, "woops", 500)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			var l FakeObjectsList
 			err := session.FetchChildren(e, FakeIdentity, &l, nil)
 
@@ -744,10 +823,13 @@ func TestSession_FetchChildren(t *testing.T) {
 				fmt.Fprint(w, `[not good]`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			var l FakeObjectsList
 			err := session.FetchChildren(e, FakeIdentity, &l, nil)
+
 			Convey("Then the error should not be nil", func() {
 				So(err, ShouldNotBeNil)
 			})
@@ -760,7 +842,6 @@ func TestSession_CreateChild(t *testing.T) {
 	Convey("Given I have an existing object", t, func() {
 
 		r := NewFakeRootObject()
-		e := NewFakeObject("xxx")
 
 		Convey("When I create a child with success", func() {
 
@@ -770,8 +851,10 @@ func TestSession_CreateChild(t *testing.T) {
 				fmt.Fprint(w, `[{"ID": "zzz"}]`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			c := NewFakeObject("")
 
 			session.CreateChild(e, c)
@@ -781,14 +864,29 @@ func TestSession_CreateChild(t *testing.T) {
 			})
 		})
 
+		Convey("When I create a child for a parent that has no ID", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+			e := NewFakeObject("")
+			c := NewFakeObject("")
+
+			err := session.CreateChild(e, c)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+
 		Convey("When I create a child and I got a communication error", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "woops", 500)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			c := NewFakeObject("")
 			err := session.CreateChild(e, c)
 
@@ -805,8 +903,10 @@ func TestSession_CreateChild(t *testing.T) {
 				fmt.Fprint(w, `[{"bad"}]`)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
 			c := NewFakeObject("")
 			err := session.CreateChild(e, c)
 			Convey("Then the error should not be nil", func() {
@@ -821,8 +921,6 @@ func TestSession_AssignChildren(t *testing.T) {
 	Convey("Given I have two existing objects", t, func() {
 
 		r := NewFakeRootObject()
-		e := NewFakeObject("xxx")
-		c := NewFakeObject("yyy")
 
 		Convey("When I assign them with success", func() {
 
@@ -830,8 +928,11 @@ func TestSession_AssignChildren(t *testing.T) {
 				w.WriteHeader(http.StatusOK)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
+			c := NewFakeObject("yyy")
 			l := []Identifiable{c}
 			session.AssignChildren(e, l, FakeIdentity)
 
@@ -839,14 +940,44 @@ func TestSession_AssignChildren(t *testing.T) {
 			})
 		})
 
+		Convey("When I assign objects to a parent that has no ID", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+
+			e := NewFakeObject("")
+			c := NewFakeObject("yyy")
+			l := []Identifiable{c}
+			err := session.AssignChildren(e, l, FakeIdentity)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+
+		Convey("When I assign objects with no IDs", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+
+			e := NewFakeObject("xxx")
+			c := NewFakeObject("")
+			l := []Identifiable{c}
+			err := session.AssignChildren(e, l, FakeIdentity)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
 		Convey("When I assign them I got an communication error", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "woops", 500)
 			}))
 			defer ts.Close()
+
 			session := NewSession("username", "password", "organization", ts.URL, r)
 
+			e := NewFakeObject("xxx")
+			c := NewFakeObject("yyy")
 			l := []Identifiable{c}
 			err := session.AssignChildren(e, l, FakeIdentity)
 
