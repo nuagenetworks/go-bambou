@@ -600,6 +600,18 @@ func TestSession_SaveEntity(t *testing.T) {
 			})
 		})
 
+		Convey("When I save an unmarshalable object", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+
+			e := NewUnmarshalableFakeObject("yyy")
+			err := session.SaveEntity(e)
+
+			Convey("Then err should not be nil", func() {
+				So(err.Error(), ShouldNotBeNil)
+			})
+		})
+
 		Convey("When I save it and I got an communication error", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -877,6 +889,19 @@ func TestSession_CreateChild(t *testing.T) {
 			})
 		})
 
+		Convey("When I create a child that is nil", func() {
+
+			session := NewSession("username", "password", "organization", "http://fake.com", nil)
+			e := NewFakeObject("xxx")
+			c := NewUnmarshalableFakeObject("yyy")
+
+			err := session.CreateChild(e, c)
+
+			Convey("Then err should not be nil", func() {
+				So(err, ShouldNotBeNil)
+			})
+		})
+
 		Convey("When I create a child and I got a communication error", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -967,6 +992,7 @@ func TestSession_AssignChildren(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 		})
+
 		Convey("When I assign them I got an communication error", func() {
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

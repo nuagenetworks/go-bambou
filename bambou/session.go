@@ -434,9 +434,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 	}
 
 	buffer := &bytes.Buffer{}
-	if err := json.NewEncoder(buffer).Encode(ids); err != nil {
-		return NewError(ErrorCodeJSONCannotEncode, err.Error())
-	}
+	json.NewEncoder(buffer).Encode(ids)
 
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
