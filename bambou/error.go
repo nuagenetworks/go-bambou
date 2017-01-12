@@ -57,21 +57,22 @@ const (
 	ErrorCodeSessionUsernameNotSet = 11005
 )
 
-// ErrorDescriptionsList represents a list of *ErrorDescriptions.
-type ErrorDescriptionsList []*ErrorDescription
-
-// ErrorDescription represents an entry in an Error.
-type ErrorDescription struct {
-	Description string `json:"description"`
-	Title       string `json:"title"`
+type Errorlist struct {
+	Errors       []Error `json:"errors"`
+	VsdErrorCode int     `json:"internalErrorCode"`
 }
 
 // Error represent an connection error.
 type Error struct {
-	Code         int                   `json:"-"`
-	Property     string                `json:"property"`
-	Message      string                `json:"type"`
-	Descriptions ErrorDescriptionsList `json:"descriptions"`
+	Code         int                `json:"-"`
+	Property     string             `json:"property"`
+	Descriptions []ErrorDescription `json:"descriptions"`
+}
+
+// ErrorDescription represents an entry in an Error.
+type ErrorDescription struct {
+	// Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 // NewError returns a new *Error.
@@ -80,13 +81,14 @@ type Error struct {
 // overwritten.
 func NewError(code int, message string) *Error {
 	return &Error{
-		Code:    code,
-		Message: message,
+		Code:     code,
+		Property: message,
+		// Descriptions:
 	}
 }
 
 // Error returns the string representation of the Error.
 func (e *Error) Error() string {
 
-	return fmt.Sprintf("<Error: %d, message: %s>", e.Code, e.Message)
+	return fmt.Sprintf("<Error Code: %d, Error Description: %s>", e.Code, e.Descriptions)
 }

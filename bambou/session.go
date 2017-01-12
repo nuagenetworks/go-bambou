@@ -28,9 +28,12 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var _currentSession Storer
@@ -181,6 +184,9 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 
 	response, err := s.client.Do(request)
 
+	log.Debugf("Response Status: %s", response.Status)
+	log.Debugf("Response Headers: %s", response.Header)
+
 	if err != nil {
 		return response, NewError(ErrorCodeSessionCannotProcessRequest, err.Error())
 	}
@@ -196,12 +202,21 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		request, _ = http.NewRequest(request.Method, newURL, request.Body)
 		return s.send(request, info)
 
-	case http.StatusConflict:
-		berr := NewError(response.StatusCode, "")
-		if err := json.NewDecoder(response.Body).Decode(&berr); err != nil {
+	case http.StatusConflict, http.StatusNotFound:
+		var berr Errorlist
+
+		body, _ := ioutil.ReadAll(response.Body)
+		log.Debugf("Response Body: %s", string(body))
+
+		if err := json.Unmarshal(body, &berr); err != nil {
 			return nil, NewError(ErrorCodeJSONCannotDecode, err.Error())
 		}
-		return nil, berr
+
+		berr.Errors[0].Code = response.StatusCode
+
+		// log.Debugf("JSON decoded error message: %s", berr.Errors[0].Descriptions[0])
+
+		return nil, &berr.Errors[0]
 
 	default:
 		return nil, NewError(response.StatusCode, response.Status)
@@ -288,9 +303,11 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 	}
 
 	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Debugf("Response Body: %s", string(body))
 
 	arr := IdentifiablesList{object} // trick for weird api..
-	if err := json.NewDecoder(response.Body).Decode(&arr); err != nil {
+	if err := json.Unmarshal(body, &arr); err != nil {
 		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
@@ -320,10 +337,11 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 		return berr
 	}
 
-	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Debugf("Response Body: %s", string(body))
 
 	dest := IdentifiablesList{object}
-	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+	if err := json.Unmarshal(body, &dest); err != nil {
 		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
@@ -339,11 +357,13 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 	}
 
 	request, err := http.NewRequest("DELETE", url, nil)
+
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
 	}
 
 	_, berr = s.send(request, nil)
+
 	if berr != nil {
 		return berr
 	}
@@ -370,12 +390,14 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	}
 
 	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Debugf("Response Body: %s", string(body))
 
 	if response.StatusCode == http.StatusNoContent || response.ContentLength == 0 {
 		return nil
 	}
 
-	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+	if err := json.Unmarshal(body, &dest); err != nil {
 		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
@@ -406,9 +428,11 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 	}
 
 	defer response.Body.Close()
+	body, _ := ioutil.ReadAll(response.Body)
+	log.Debugf("Response Body: %s", string(body))
 
 	dest := IdentifiablesList{child}
-	if err := json.NewDecoder(response.Body).Decode(&dest); err != nil {
+	if err := json.Unmarshal(body, &dest); err != nil {
 		return NewError(ErrorCodeJSONCannotDecode, err.Error())
 	}
 
