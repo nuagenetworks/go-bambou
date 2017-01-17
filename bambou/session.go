@@ -310,6 +310,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 		return NewError(ErrorCodeJSONCannotEncode, err.Error())
 	}
 
+	url = url + "?responseChoice=1"
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
@@ -338,6 +339,7 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 		return berr
 	}
 
+	url = url + "?responseChoice=1"
 	request, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return NewError(http.StatusBadRequest, err.Error())
