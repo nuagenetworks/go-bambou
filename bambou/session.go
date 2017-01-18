@@ -36,12 +36,12 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-var _currentSession Storer
+var currentSession Storer
 
 // CurrentSession returns the current active and authenticated Session.
 func CurrentSession() Storer {
 
-	return _currentSession
+	return currentSession
 }
 
 // Storer is the interface that must be implemented by object that can
@@ -62,9 +62,10 @@ type Storer interface {
 
 // Session represents a user session. It provides the entire
 // communication layer with the backend. It must implement the Operationable interface.
+// A session can be authenticated via 1) TLS certificates or 2) user + password (different API endpoints)
 type Session struct {
 	root         Rootable
-	Certificate  string
+	Certificate  *tls.Certificate
 	Username     string
 	Password     string
 	Organization string
@@ -75,6 +76,7 @@ type Session struct {
 // NewSession returns a new *Session
 // You need to provide a Rootable object that will be used to contain
 // the results of the authentication process, like the api key for instance.
+// Authentication using user + password
 func NewSession(username, password, organization, url string, root Rootable) *Session {
 
 	return &Session{
@@ -87,19 +89,24 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 	}
 }
 
-// SetInsecureSkipVerify sets if the internal HTTP client should allow to connect
-// to insecure API endpoints.
-func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
+func NewX509Session(cert *tls.Certificate, url string, root Rootable) *Session {
 
-	if CurrentSession() != nil {
-		return NewError(ErrorCodeSessionAlreadyStarted, "The session is already started. Stop it first")
+	return &Session{
+		Certificate: cert,
+		URL:         url,
+		root:        root,
+		client:      &http.Client{},
 	}
+}
 
-	s.client = &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: skip}}}
+// Dummy function avail for backwards compat. Logic moved to "prepareHeaders"
+
+func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 
 	return nil
 }
 
+// Used for user & password based authentication
 func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 	if s.Username == "" {
@@ -124,14 +131,24 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Error {
 
-	authString, berr := s.makeAuthorizationHeaders()
-	if berr != nil {
-		return berr
+	if s.Certificate != nil { // We're using X509 certificate based auth.
+		// XXX - "InsecureSkipVerify"
+		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{Certificates: []tls.Certificate{*s.Certificate}, InsecureSkipVerify: true}}
+
+	} else { // We're using user & password based authentication
+
+		// Skip TLS certificate verification
+		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+		authString, berr := s.makeAuthorizationHeaders()
+		if berr != nil {
+			return berr
+		}
+		request.Header.Set("Authorization", authString)
+		request.Header.Set("X-Nuage-Organization", s.Organization)
 	}
 
-	request.Header.Set("Authorization", authString)
+	// Common headers
 	request.Header.Set("X-Nuage-PageSize", "50")
-	request.Header.Set("X-Nuage-Organization", s.Organization)
 	request.Header.Set("Content-Type", "application/json")
 
 	if info == nil {
@@ -184,12 +201,12 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 
 	response, err := s.client.Do(request)
 
-	log.Debugf("Response Status: %s", response.Status)
-	log.Debugf("Response Headers: %s", response.Header)
-
 	if err != nil {
 		return response, NewError(ErrorCodeSessionCannotProcessRequest, err.Error())
 	}
+
+	log.Debugf("Response Status: %s", response.Status)
+	log.Debugf("Response Headers: %s", response.Header)
 
 	switch response.StatusCode {
 
@@ -265,7 +282,7 @@ func (s *Session) Root() Rootable {
 // At that point the authentication will be done.
 func (s *Session) Start() *Error {
 
-	_currentSession = s
+	currentSession = s
 
 	err := s.FetchEntity(s.root)
 
@@ -281,7 +298,7 @@ func (s *Session) Reset() {
 
 	s.root.SetAPIKey("")
 
-	_currentSession = nil
+	currentSession = nil
 }
 
 // FetchEntity fetchs the given Identifiable from the server.
