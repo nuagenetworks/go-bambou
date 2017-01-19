@@ -62,7 +62,7 @@ type Errorlist struct {
 	VsdErrorCode int     `json:"internalErrorCode"`
 }
 
-// Error represent an connection error.
+// Error represent a connection error.
 type Error struct {
 	Code         int                `json:"-"`
 	Property     string             `json:"property"`
@@ -71,7 +71,7 @@ type Error struct {
 
 // ErrorDescription represents an entry in an Error.
 type ErrorDescription struct {
-	// Title       string `json:"title"`
+	Title       string `json:"title"`
 	Description string `json:"description"`
 }
 
@@ -81,9 +81,9 @@ type ErrorDescription struct {
 // overwritten.
 func NewError(code int, message string) *Error {
 	return &Error{
-		Code:     code,
-		Property: message,
-		// Descriptions:
+		Code:         code,
+		Property:     message,
+		Descriptions: []ErrorDescription{{Title: "", Description: ""}},
 	}
 }
 
