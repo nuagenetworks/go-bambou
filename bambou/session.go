@@ -100,7 +100,6 @@ func NewX509Session(cert *tls.Certificate, url string, root Rootable) *Session {
 }
 
 // Dummy function avail for backwards compat. Logic moved to "prepareHeaders"
-
 func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 
 	return nil
@@ -110,16 +109,16 @@ func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 	if s.Username == "" {
-		return "", NewError(ErrorCodeSessionUsernameNotSet, "Error while creating headers: User must be set")
+		return "", NewBambouError("Invalid Credentials", "No username given")
 	}
 
 	if s.root == nil {
-		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: no root user set")
+		return "", NewBambouError("Invalid Credentials", "No root user set")
 	}
 
 	key := s.root.APIKey()
 	if s.Password == "" && key == "" {
-		return "", NewError(ErrorCodeSessionCannotForgeAuthToken, "Error while creating headers: Password or APIKey must be set")
+		return "", NewBambouError("Invalid Credentials", "No password or authentication token given")
 	}
 
 	if key == "" {
@@ -132,6 +131,7 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Error {
 
 	if s.Certificate != nil { // We're using X509 certificate based auth.
+
 		// XXX - "InsecureSkipVerify"
 		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{Certificates: []tls.Certificate{*s.Certificate}, InsecureSkipVerify: true}}
 
@@ -139,9 +139,9 @@ func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Err
 
 		// Skip TLS certificate verification
 		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-		authString, berr := s.makeAuthorizationHeaders()
-		if berr != nil {
-			return berr
+		authString, err := s.makeAuthorizationHeaders()
+		if err != nil {
+			return err
 		}
 		request.Header.Set("Authorization", authString)
 		request.Header.Set("X-Nuage-Organization", s.Organization)
@@ -202,7 +202,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 	response, err := s.client.Do(request)
 
 	if err != nil {
-		return response, NewError(ErrorCodeSessionCannotProcessRequest, err.Error())
+		return response, NewBambouError("", err.Error())
 	}
 
 	log.Debugf("Response Status: %s", response.Status)
@@ -220,23 +220,19 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		return s.send(request, info)
 
 	case http.StatusConflict, http.StatusNotFound:
-		var berr Errorlist
+		var vsdresp VsdErrorList
 
 		body, _ := ioutil.ReadAll(response.Body)
 		log.Debugf("Response Body: %s", string(body))
 
-		if err := json.Unmarshal(body, &berr); err != nil {
-			return nil, NewError(ErrorCodeJSONCannotDecode, err.Error())
+		if err := json.Unmarshal(body, &vsdresp); err != nil {
+			return nil, NewBambouError("", err.Error())
 		}
 
-		berr.Errors[0].Code = response.StatusCode
-
-		// log.Debugf("JSON decoded error message: %s", berr.Errors[0].Descriptions[0])
-
-		return nil, &berr.Errors[0]
+		return nil, NewBambouError(vsdresp.VsdErrors[0].Descriptions[0].Title, vsdresp.VsdErrors[0].Descriptions[0].Description)
 
 	default:
-		return nil, NewError(response.StatusCode, response.Status)
+		return nil, NewBambouError("", response.Status)
 	}
 }
 
@@ -252,7 +248,7 @@ func (s *Session) getPersonalURL(o Identifiable) (string, *Error) {
 	}
 
 	if o.Identifier() == "" {
-		return "", NewError(ErrorCodeSessionIDNotSet, "Cannot GetPersonalURL of an object with no ID set")
+		return "", NewBambouError("VSD error", "Cannot GetPersonalURL of an object with no ID set")
 	}
 
 	return s.getGeneralURL(o) + "/" + o.Identifier(), nil
@@ -264,9 +260,9 @@ func (s *Session) getURLForChildrenIdentity(o Identifiable, childrenIdentity Ide
 		return s.URL + "/" + childrenIdentity.Category, nil
 	}
 
-	url, err := s.getPersonalURL(o)
-	if err != nil {
-		return "", err
+	url, berr := s.getPersonalURL(o)
+	if berr != nil {
+		return "", berr
 	}
 
 	return url + "/" + childrenIdentity.Category, nil
@@ -284,10 +280,10 @@ func (s *Session) Start() *Error {
 
 	currentSession = s
 
-	err := s.FetchEntity(s.root)
+	berr := s.FetchEntity(s.root)
 
-	if err != nil {
-		return err
+	if berr != nil {
+		return berr
 	}
 
 	return nil
@@ -311,7 +307,7 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -325,7 +321,7 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	arr := IdentifiablesList{object} // trick for weird api..
 	if err := json.Unmarshal(body, &arr); err != nil {
-		return NewError(ErrorCodeJSONCannotDecode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	return nil
@@ -341,12 +337,12 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(object); err != nil {
-		return NewError(ErrorCodeJSONCannotEncode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -359,7 +355,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	dest := IdentifiablesList{object}
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewError(ErrorCodeJSONCannotDecode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	return nil
@@ -376,7 +372,7 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 	request, err := http.NewRequest("DELETE", url, nil)
 
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	_, berr = s.send(request, nil)
@@ -398,7 +394,7 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	response, berr := s.send(request, info)
@@ -415,7 +411,7 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	}
 
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewError(ErrorCodeJSONCannotDecode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	return nil
@@ -431,12 +427,12 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(child); err != nil {
-		return NewError(ErrorCodeJSONCannotEncode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	request, err := http.NewRequest("POST", url, buffer)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -450,7 +446,7 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	dest := IdentifiablesList{child}
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewError(ErrorCodeJSONCannotDecode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	return nil
@@ -470,7 +466,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 		if i := c.Identifier(); i != "" {
 			ids = append(ids, c.Identifier())
 		} else {
-			return NewError(ErrorCodeSessionIDNotSet, "One of the object to assign has no ID")
+			return NewBambouError("VSD Error", "One of the object to assign has no ID")
 		}
 	}
 
@@ -479,7 +475,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	_, berr = s.send(request, nil)
@@ -501,7 +497,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 
 	request, err := http.NewRequest("GET", currentURL, nil)
 	if err != nil {
-		return NewError(http.StatusBadRequest, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -511,7 +507,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 
 	notification := NewNotification()
 	if err := json.NewDecoder(response.Body).Decode(notification); err != nil {
-		return NewError(ErrorCodeJSONCannotDecode, err.Error())
+		return NewBambouError("", err.Error())
 	}
 
 	if len(notification.Events) > 0 {
