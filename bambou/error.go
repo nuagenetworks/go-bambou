@@ -52,6 +52,14 @@ func NewBambouError(title, description string) *Error {
 	}
 }
 
+// Sometimes I want to scream and shout... -- Old broken code
+func NewError(code int, description string) *Error {
+	return &Error{
+		Title:       fmt.Sprintf("Error code: %d", code),
+		Description: description,
+	}
+}
+
 // Error returns the string representation of a Bambou Error (making it an "error")
 func (be *Error) Error() string {
 	// return fmt.Sprintf("%+v", *be)
