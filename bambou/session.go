@@ -228,8 +228,12 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		if err := json.Unmarshal(body, &vsdresp); err != nil {
 			return nil, NewBambouError("", err.Error())
 		}
-
-		return nil, NewBambouError(vsdresp.VsdErrors[0].Descriptions[0].Title, vsdresp.VsdErrors[0].Descriptions[0].Description)
+		// Check if there is an _actual_ VSD response -- we may get a bogus 40x from e.g. tests
+		if len(vsdresp.VsdErrors) == 0 {
+			return nil, NewBambouError("", response.Status)
+		} else { // Valid VSD response
+			return nil, NewBambouError(vsdresp.VsdErrors[0].Descriptions[0].Title, vsdresp.VsdErrors[0].Descriptions[0].Description)
+		}
 
 	default:
 		return nil, NewBambouError("", response.Status)
