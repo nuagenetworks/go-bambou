@@ -1236,7 +1236,7 @@ func TestSession_Send(t *testing.T) {
 			})
 
 			Convey("Then the error Title should be '' and the Description should be Conflict", func() {
-				So(string(err.Title), ShouldEqual, "")
+				So(string(err.Title), ShouldEqual, "Non-VSD server HTTP error")
 				So(err.Description, ShouldEqual, "409 Conflict")
 			})
 		})
@@ -1261,7 +1261,7 @@ func TestSession_Send(t *testing.T) {
 			})
 
 			Convey("Then the error Message should 'iznogood' and the Code should be StatusInternalServerError", func() {
-				So(err.Title, ShouldEqual, "")
+				So(err.Title, ShouldEqual, "HTTP error")
 				So(err.Description, ShouldEqual, "500 Internal Server Error")
 			})
 		})

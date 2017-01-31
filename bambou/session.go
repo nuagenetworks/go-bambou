@@ -202,7 +202,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 	response, err := s.client.Do(request)
 
 	if err != nil {
-		return response, NewBambouError("", err.Error())
+		return response, NewBambouError("HTTP client error", err.Error())
 	}
 
 	log.Debugf("Response Status: %s", response.Status)
@@ -226,17 +226,17 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		log.Debugf("Response Body: %s", string(body))
 
 		if err := json.Unmarshal(body, &vsdresp); err != nil {
-			return nil, NewBambouError("", err.Error())
+			return nil, NewBambouError("JSON unmarshalling error", err.Error())
 		}
 		// Check if there is an _actual_ VSD response -- we may get a bogus 40x from e.g. tests
 		if len(vsdresp.VsdErrors) == 0 {
-			return nil, NewBambouError("", response.Status)
+			return nil, NewBambouError("Non-VSD server HTTP error", response.Status)
 		} else { // Valid VSD response
 			return nil, NewBambouError(vsdresp.VsdErrors[0].Descriptions[0].Title, vsdresp.VsdErrors[0].Descriptions[0].Description)
 		}
 
 	default:
-		return nil, NewBambouError("", response.Status)
+		return nil, NewBambouError("HTTP error", response.Status)
 	}
 }
 
@@ -311,7 +311,7 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -325,7 +325,7 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 
 	arr := IdentifiablesList{object} // trick for weird api..
 	if err := json.Unmarshal(body, &arr); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON unmarshalling error", err.Error())
 	}
 
 	return nil
@@ -341,12 +341,12 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(object); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON error", err.Error())
 	}
 
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -359,7 +359,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 
 	dest := IdentifiablesList{object}
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON Unmarshaling error", err.Error())
 	}
 
 	return nil
@@ -376,7 +376,7 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 	request, err := http.NewRequest("DELETE", url, nil)
 
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	_, berr = s.send(request, nil)
@@ -398,7 +398,7 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	response, berr := s.send(request, info)
@@ -415,7 +415,7 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	}
 
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP Unmarshaling error", err.Error())
 	}
 
 	return nil
@@ -431,12 +431,12 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	buffer := &bytes.Buffer{}
 	if err := json.NewEncoder(buffer).Encode(child); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON error", err.Error())
 	}
 
 	request, err := http.NewRequest("POST", url, buffer)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -450,7 +450,7 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 
 	dest := IdentifiablesList{child}
 	if err := json.Unmarshal(body, &dest); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON Unmarshaling error", err.Error())
 	}
 
 	return nil
@@ -479,7 +479,7 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 
 	request, err := http.NewRequest("PUT", url, buffer)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	_, berr = s.send(request, nil)
@@ -501,7 +501,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 
 	request, err := http.NewRequest("GET", currentURL, nil)
 	if err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
 	response, berr := s.send(request, nil)
@@ -511,7 +511,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 
 	notification := NewNotification()
 	if err := json.NewDecoder(response.Body).Decode(notification); err != nil {
-		return NewBambouError("", err.Error())
+		return NewBambouError("JSON error", err.Error())
 	}
 
 	if len(notification.Events) > 0 {
