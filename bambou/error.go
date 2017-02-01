@@ -38,7 +38,7 @@ type VsdError struct {
 }
 
 // Errors at this level can be of two types: 1) Connection logic / setup errors (e.g. invalid credentials) 2) VSD error response.
-// We use Bambou Error for both of those, even if they are conceptually different -- hence the note above
+// We use Bambou Error for both, even if they are conceptually different -- hence the note above
 
 type Error struct {
 	Title       string `json:"title"`
@@ -52,7 +52,6 @@ func NewBambouError(title, description string) *Error {
 	}
 }
 
-// Sometimes I want to scream and shout... -- Old broken code
 func NewError(code int, description string) *Error {
 	return &Error{
 		Title:       fmt.Sprintf("Error code: %d", code),
@@ -61,7 +60,8 @@ func NewError(code int, description string) *Error {
 }
 
 // Error returns the string representation of a Bambou Error (making it an "error")
+// Valid JSON formatted
 func (be *Error) Error() string {
 	// return fmt.Sprintf("%+v", *be)
-	return fmt.Sprintf("{\"title\": \"%s\", \"description\": \"%s\"}", be.Title, be.Description) // Valid JSON formatted
+	return fmt.Sprintf("{\"title\": \"%s\", \"description\": \"%s\"}", be.Title, be.Description)
 }
