@@ -29,9 +29,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -79,27 +81,54 @@ type Session struct {
 // Authentication using user + password
 func NewSession(username, password, organization, url string, root Rootable) *Session {
 
+	tr := &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: time.Minute,
+		}).Dial,
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
 	return &Session{
 		Username:     username,
 		Password:     password,
 		Organization: organization,
 		URL:          url,
 		root:         root,
-		client:       &http.Client{},
+		client:       &http.Client{Transport: tr},
+		//client: &http.Client{},
 	}
 }
 
 func NewX509Session(cert *tls.Certificate, url string, root Rootable) *Session {
 
+	tr := &http.Transport{
+		MaxIdleConns:    10,
+		IdleConnTimeout: 30 * time.Second,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: time.Minute,
+		}).Dial,
+		TLSClientConfig: &tls.Config{
+			Certificates:       []tls.Certificate{*cert},
+			InsecureSkipVerify: true,
+		},
+	}
+
 	return &Session{
 		Certificate: cert,
 		URL:         url,
 		root:        root,
-		client:      &http.Client{},
+		client:      &http.Client{Transport: tr},
+		//client: &http.Client{},
 	}
 }
 
-// Dummy function avail for backwards compat. Logic moved to "prepareHeaders"
+// Dummy function avail for backwards compat. Logic moved to the new session methods
 func (s *Session) SetInsecureSkipVerify(skip bool) *Error {
 
 	return nil
@@ -130,15 +159,8 @@ func (s *Session) makeAuthorizationHeaders() (string, *Error) {
 
 func (s *Session) prepareHeaders(request *http.Request, info *FetchingInfo) *Error {
 
-	if s.Certificate != nil { // We're using X509 certificate based auth.
+	if s.Certificate == nil { // We're using user & password based authentication
 
-		// XXX - "InsecureSkipVerify"
-		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{Certificates: []tls.Certificate{*s.Certificate}, InsecureSkipVerify: true}}
-
-	} else { // We're using user & password based authentication
-
-		// Skip TLS certificate verification
-		s.client.Transport = &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
 		authString, err := s.makeAuthorizationHeaders()
 		if err != nil {
 			return err
@@ -318,8 +340,8 @@ func (s *Session) FetchEntity(object Identifiable) *Error {
 	if berr != nil {
 		return berr
 	}
-
 	defer response.Body.Close()
+
 	body, _ := ioutil.ReadAll(response.Body)
 	log.Debugf("Response Body: %s", string(body))
 
@@ -354,6 +376,7 @@ func (s *Session) SaveEntity(object Identifiable) *Error {
 	if berr != nil {
 		return berr
 	}
+	defer response.Body.Close()
 
 	body, _ := ioutil.ReadAll(response.Body)
 	log.Debugf("Response Body: %s", string(body))
@@ -381,11 +404,11 @@ func (s *Session) DeleteEntity(object Identifiable) *Error {
 		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
-	_, berr = s.send(request, nil)
-
+	response, berr := s.send(request, nil)
 	if berr != nil {
 		return berr
 	}
+	defer response.Body.Close()
 
 	return nil
 }
@@ -407,8 +430,8 @@ func (s *Session) FetchChildren(parent Identifiable, identity Identity, dest int
 	if berr != nil {
 		return berr
 	}
-
 	defer response.Body.Close()
+
 	body, _ := ioutil.ReadAll(response.Body)
 	log.Debugf("Response Body: %s", string(body))
 
@@ -445,8 +468,8 @@ func (s *Session) CreateChild(parent Identifiable, child Identifiable) *Error {
 	if berr != nil {
 		return berr
 	}
-
 	defer response.Body.Close()
+
 	body, _ := ioutil.ReadAll(response.Body)
 	log.Debugf("Response Body: %s", string(body))
 
@@ -484,10 +507,11 @@ func (s *Session) AssignChildren(parent Identifiable, children []Identifiable, i
 		return NewBambouError("HTTP transaction error", err.Error())
 	}
 
-	_, berr = s.send(request, nil)
+	response, berr := s.send(request, nil)
 	if berr != nil {
 		return berr
 	}
+	defer response.Body.Close()
 
 	return nil
 }
@@ -510,6 +534,7 @@ func (s *Session) NextEvent(channel NotificationsChannel, lastEventID string) *E
 	if berr != nil {
 		return berr
 	}
+	defer response.Body.Close()
 
 	notification := NewNotification()
 	if err := json.NewDecoder(response.Body).Decode(notification); err != nil {
