@@ -29,7 +29,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -82,16 +81,8 @@ type Session struct {
 func NewSession(username, password, organization, url string, root Rootable) *Session {
 
 	tr := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          20,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		Proxy:               http.ProxyFromEnvironment,
+		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
@@ -110,16 +101,8 @@ func NewSession(username, password, organization, url string, root Rootable) *Se
 func NewX509Session(cert *tls.Certificate, url string, root Rootable) *Session {
 
 	tr := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          20,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
+		Proxy:               http.ProxyFromEnvironment,
+		TLSHandshakeTimeout: 10 * time.Second,
 		TLSClientConfig: &tls.Config{
 			Certificates:       []tls.Certificate{*cert},
 			InsecureSkipVerify: true,
