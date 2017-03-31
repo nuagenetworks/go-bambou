@@ -237,12 +237,14 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		return response, nil
 
 	case http.StatusMultipleChoices:
+		defer response.Body.Close()
 		newURL := request.URL.String() + "?responseChoice=1"
 		request, _ = http.NewRequest(request.Method, newURL, request.Body)
 		return s.send(request, info)
 
 	case http.StatusConflict, http.StatusNotFound:
 		var vsdresp VsdErrorList
+		defer response.Body.Close()
 
 		body, _ := ioutil.ReadAll(response.Body)
 		log.Debugf("Response Body: %s", string(body))
@@ -258,6 +260,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 		}
 
 	default:
+		defer response.Body.Close()
 		return nil, NewBambouError("HTTP error", response.Status)
 	}
 }
