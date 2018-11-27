@@ -1230,6 +1230,7 @@ func TestSession_Send(t *testing.T) {
 
 			choiceMade := false
 			sameRequestBody := false
+			queryStringSet := false
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				
 				if choiceMade {
@@ -1238,6 +1239,9 @@ func TestSession_Send(t *testing.T) {
 					_ = json.NewDecoder(r.Body).Decode(&requestBody)
 					if requestBody.Test == "test" {
 						sameRequestBody = true
+					}
+					if r.URL.RawQuery == "responseChoice=1" {
+						queryStringSet = true
 					}
 				} else {
 					w.WriteHeader(http.StatusMultipleChoices)
@@ -1255,6 +1259,10 @@ func TestSession_Send(t *testing.T) {
 
 			Convey("Then second request body should be the same as original request body", func() {
 				So(sameRequestBody, ShouldBeTrue)
+			})
+
+			Convey("Then second request query string should be equal to responseChoice=1", func() {
+				So(queryStringSet, ShouldBeTrue)
 			})
 
 			Convey("Then response status code should be 200", func() {
