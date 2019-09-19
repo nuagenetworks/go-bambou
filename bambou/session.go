@@ -213,6 +213,7 @@ func (s *Session) send(request *http.Request, info *FetchingInfo) (*http.Respons
 
 	log.Debugf("Request Method URL: %s %s", request.Method, request.URL)
 	log.Debugf("Request Headers: %s", request.Header)
+	log.Debugf("Request Body: %s", request.Body)
 
 	response, err := s.client.Do(request)
 
